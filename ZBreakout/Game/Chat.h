@@ -8,35 +8,41 @@ Only original author is allowed to edit and share this file.
 Unauthorized copying or editing this file, via any medium is strictly prohibited
 Proprietary and confidential
 */
-
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef CHAT_H
+#define CHAT_H
 
 //STD includes
+#include <string>
 
 //Thirdparty includes
 #include <SFML/Graphics.hpp>
 
 //Project includes
-#include "Logger.h"
-#include "GameState/StateManager.h"
-#include "AssetManager.h"
+#include "../AssetManager.h"
+#include "RichText.h"
 
-#define ELOG(x) _LOG_.log("Engine", x);
+const int CHAT_MAX_MESSAGES = 5;
 
-class Engine {
+struct ChatMessage {
+	std::string content;
+	sf::Color color;
+};
+
+class Chat {
 public:
-	Engine(int argc, char* argv[]);
+	Chat();
 
-	int run();
+	void init(AssetManager& asst, int x, int y);
+
+	void render(sf::RenderWindow& window);
+
+	void addMessage(sf::Color c, std::string message);
 private:
-	void shutdown();
+	sfe::RichText log;
+	std::vector<ChatMessage> messages;
 
-	sf::RenderWindow window;
-	StateManager stateManager;
-
-	AssetManager assets;
-	GameServer server;
+	int x;
+	int y;
 };
 
 #endif

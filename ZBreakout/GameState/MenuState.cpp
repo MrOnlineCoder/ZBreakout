@@ -54,12 +54,13 @@ void MenuState::input(sf::Event ev) {
 	}
 
 	if (playBtn.process(ev)) {
-		manager->getWindow().close();
+		manager->getServer().start();
+		manager->setState(GameStates::GAME);
 		return;
 	}
 
 	if (connectBtn.process(ev)) {
-		manager->getWindow().close();
+		manager->setState(GameStates::GAME);
 		return;
 	}
 

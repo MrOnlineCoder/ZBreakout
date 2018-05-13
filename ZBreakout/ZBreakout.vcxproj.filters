@@ -51,6 +51,30 @@
     <ClCompile Include="GameState\CreditsState.cpp">
       <Filter>GameState</Filter>
     </ClCompile>
+    <ClCompile Include="Game\GameServer.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\GameProtocol.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GameState\PlayState.cpp">
+      <Filter>GameState</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Game.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Renderer.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Player.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\RichText.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Chat.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -81,6 +105,30 @@
       <Filter>GameState</Filter>
     </ClInclude>
     <ClInclude Include="Game\GameServer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GameProtocol.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Constants.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Game.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameState\PlayState.h">
+      <Filter>GameState</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Player.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Renderer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Chat.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\RichText.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

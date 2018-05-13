@@ -18,14 +18,15 @@ Engine::Engine(int argc, char* argv[]) {
 	ELOG("Creating game window...");
 	window.create(sf::VideoMode(1280, 720), "ZBreakout", sf::Style::Close | sf::Style::Titlebar);
 	window.setFramerateLimit(60);
+	window.setKeyRepeatEnabled(false);
 
 	ELOG("Loading assets...");
 	assets.loadAll();
 
 	ELOG("Creating StateManager");
-	stateManager.init(&window, &assets);
+	stateManager.init(&window, &assets, &server);
 
-	ELOG("Seeding RND");
+	ELOG("Seeding random generator");
 	std::srand(std::time(0));
 }
 
@@ -58,6 +59,9 @@ void Engine::shutdown() {
 	ELOG("Shutting down the game...");
 	ELOG("Destoying assets manager...");
 	assets.destroy();
+
+	ELOG("Trying to shutdown game server...");
+	server.stop();
 
 	ELOG("Done. Exiting.");
 }

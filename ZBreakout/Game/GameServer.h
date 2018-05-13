@@ -16,18 +16,32 @@ Proprietary and confidential
 
 #include "../Logger.h"
 #include "Constants.h"
+#include "GameProtocol.h"
+#include "Game.h"
 
 class GameServer {
 public:
 	GameServer();
+
 	bool start();
 	void stop();
+	void reset();
 private:
 	void loop();
+	void processPacket(int sender, sf::Packet packet);
+	void kick(int who, std::string msg);
+	void sendGameDelta();
+
+	void broadcast(sf::Packet& packet);
+
 	bool running;
+	int connected;
+
+	Game game;
 
 	sf::TcpListener tcpServer;
 	sf::Thread serverThread;
+	sf::TcpSocket sockets[Constants::MAX_PLAYERS];
 };
 
 #endif

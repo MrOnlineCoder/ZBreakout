@@ -126,7 +126,15 @@
     <ClCompile Include="GameState\CreditsState.cpp" />
     <ClCompile Include="GameState\IntroState.cpp" />
     <ClCompile Include="GameState\MenuState.cpp" />
+    <ClCompile Include="GameState\PlayState.cpp" />
     <ClCompile Include="GameState\StateManager.cpp" />
+    <ClCompile Include="Game\Chat.cpp" />
+    <ClCompile Include="Game\Game.cpp" />
+    <ClCompile Include="Game\GameProtocol.cpp" />
+    <ClCompile Include="Game\GameServer.cpp" />
+    <ClCompile Include="Game\Player.cpp" />
+    <ClCompile Include="Game\Renderer.cpp" />
+    <ClCompile Include="Game\RichText.cpp" />
     <ClCompile Include="GUI\TextButton.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -138,8 +146,16 @@
     <ClInclude Include="GameState\GameState.h" />
     <ClInclude Include="GameState\IntroState.h" />
     <ClInclude Include="GameState\MenuState.h" />
+    <ClInclude Include="GameState\PlayState.h" />
     <ClInclude Include="GameState\StateManager.h" />
+    <ClInclude Include="Game\Chat.h" />
+    <ClInclude Include="Game\Constants.h" />
+    <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="Game\GameProtocol.h" />
     <ClInclude Include="Game\GameServer.h" />
+    <ClInclude Include="Game\Player.h" />
+    <ClInclude Include="Game\Renderer.h" />
+    <ClInclude Include="Game\RichText.h" />
     <ClInclude Include="GUI\TextButton.h" />
     <ClInclude Include="Logger.h" />
   </ItemGroup>

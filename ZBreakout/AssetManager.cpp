@@ -23,7 +23,10 @@ void AssetManager::loadAll() {
 
 	addMusic("menu", "music/Crypto.ogg");
 
+	loadTexture("player", "player/idle.png");
+
 	loadSound("intro_shot", "sounds/intro_shot.ogg");
+	loadSound("lol", "sounds/sha.ogg");
 }
 
 bool AssetManager::init(char* arg0) {

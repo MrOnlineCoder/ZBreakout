@@ -14,13 +14,16 @@ Proprietary and confidential
 #include "IntroState.h"
 #include "MenuState.h"
 #include "CreditsState.h"
+#include "PlayState.h"
 
-void StateManager::init(sf::RenderWindow * window, AssetManager * assetsPtr) {
+void StateManager::init(sf::RenderWindow * window, AssetManager * assetsPtr, GameServer* serverPtr) {
 	current = GameStates::INTRO;
 	
 	winSize = window->getSize();
 
 	this->window = window;
+
+	this->server = serverPtr;
 
 	_LOG_.log("StateManager", "Loading AssetManager...");
 	assets = assetsPtr;
@@ -39,6 +42,11 @@ void StateManager::init(sf::RenderWindow * window, AssetManager * assetsPtr) {
 	CreditsState* creditsState = new CreditsState(this);
 
 	states.push_back(creditsState);
+
+	_LOG_.log("StateManager", "Creating PlayState");
+	PlayState* playState = new PlayState(this);
+
+	states.push_back(playState);
 
 	_LOG_.log("StateManager", "Game states have been created");
 
