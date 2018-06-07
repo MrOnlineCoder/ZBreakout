@@ -18,6 +18,7 @@ Proprietary and confidential
 #include "Constants.h"
 #include "GameProtocol.h"
 #include "Game.h"
+#include "Level.h"
 
 class GameServer {
 public:
@@ -32,12 +33,16 @@ private:
 	void kick(int who, std::string msg);
 	void sendGameDelta();
 
+	void givePlayerWeapon(PlayerID id, std::string type);
+
 	void broadcast(sf::Packet& packet);
 
 	bool running;
 	int connected;
 
 	Game game;
+
+	Level level;
 
 	sf::TcpListener tcpServer;
 	sf::Thread serverThread;

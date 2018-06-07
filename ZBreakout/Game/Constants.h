@@ -23,10 +23,17 @@ namespace Constants {
 	
 	const static std::string VERSION = "1.0.0";
 	
-	const static std::string LEVEL = "lab";
+	const static std::string LEVEL = "chateau";
 
-	
+	const int MAX_PLAYER_HP = 200;
+
+	const int PLAYER_SLOTS = 5;
+
+	const int BULLET_SPEED = 50;
+
 	const static float PLAYER_SPEED = 20.0f;
+
+	const static int LEVEL_SIZE = 4096;
 };
 
 #endif

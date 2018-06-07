@@ -74,12 +74,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\DEVELOPMENT\C++\SOURCES\tmxlite-master\tmxlite-master\tmxlite\include;E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;sfml-network-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\DEVELOPMENT\C++\SOURCES\tmxlite-master\tmxlite-master\tmxlite\bin\DebugStatic;E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;sfml-network-d.lib;libtmxlite-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,9 +132,12 @@
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Game\GameProtocol.cpp" />
     <ClCompile Include="Game\GameServer.cpp" />
+    <ClCompile Include="Game\Level.cpp" />
     <ClCompile Include="Game\Player.cpp" />
     <ClCompile Include="Game\Renderer.cpp" />
     <ClCompile Include="Game\RichText.cpp" />
+    <ClCompile Include="Game\Weapon.cpp" />
+    <ClCompile Include="GUI\FPS.cpp" />
     <ClCompile Include="GUI\TextButton.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -153,9 +156,14 @@
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\GameProtocol.h" />
     <ClInclude Include="Game\GameServer.h" />
+    <ClInclude Include="Game\Inventory.h" />
+    <ClInclude Include="Game\Level.h" />
     <ClInclude Include="Game\Player.h" />
     <ClInclude Include="Game\Renderer.h" />
     <ClInclude Include="Game\RichText.h" />
+    <ClInclude Include="Game\SFMLOrthogonalLayer.hpp" />
+    <ClInclude Include="Game\Weapon.h" />
+    <ClInclude Include="GUI\FPS.h" />
     <ClInclude Include="GUI\TextButton.h" />
     <ClInclude Include="Logger.h" />
   </ItemGroup>

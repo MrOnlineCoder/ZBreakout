@@ -18,13 +18,6 @@ void GameProtocol::sendServerHandshake(sf::TcpSocket& socket) {
 }
 
 bool GameProtocol::verifyServerHandshake(sf::Packet & packet) {
-	NetMessage msg;
-	packet >> msg;
-
-	if (msg != NetMessage::SV_HANDSHAKE) {
-		return false;
-	}
-
 	std::string text;
 	packet >> text;
 
@@ -131,4 +124,13 @@ sf::Packet& operator >>(sf::Packet& packet, Player& arg) {
 
 sf::Packet& operator <<(sf::Packet& packet, Player& arg) {
 	return packet << arg.pos << arg.direction;
+}
+
+
+sf::Packet& operator >>(sf::Packet& packet, Bullet& arg) {
+	return packet >> arg.angle >> arg.damage >> arg.pos >> arg.shooter >> arg.type;
+}
+
+sf::Packet& operator <<(sf::Packet& packet, Bullet& arg) {
+	return packet << arg.angle << arg.damage << arg.pos << arg.shooter << arg.type;
 }

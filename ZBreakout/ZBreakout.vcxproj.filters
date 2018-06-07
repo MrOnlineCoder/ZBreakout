@@ -75,6 +75,15 @@
     <ClCompile Include="Game\Chat.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Level.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\FPS.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Weapon.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -129,6 +138,21 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\RichText.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\SFMLOrthogonalLayer.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Level.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\FPS.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Weapon.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Inventory.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

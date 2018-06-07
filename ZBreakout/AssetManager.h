@@ -23,6 +23,7 @@ Proprietary and confidential
 
 //Project includes
 #include "Logger.h"
+#include "Game/Weapon.h"
 
 const std::string ASSETS_PATH = "Assets";
 

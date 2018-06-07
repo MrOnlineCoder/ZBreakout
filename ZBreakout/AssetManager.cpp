@@ -19,14 +19,25 @@ AssetManager::AssetManager() {
 }
 
 void AssetManager::loadAll() {
+	//fonts
 	loadFontFromFile("main", "fonts/OpenSans-Regular.ttf");
 
+	//music
 	addMusic("menu", "music/Crypto.ogg");
 
+	//le player
 	loadTexture("player", "player/idle.png");
 
+	//intro
 	loadSound("intro_shot", "sounds/intro_shot.ogg");
 	loadSound("lol", "sounds/sha.ogg");
+
+	//weapons
+	loadTexture("weapon_"+Weapon::PISTOL, "weapons/pistol.png");
+	loadSound("weapon_"+Weapon::PISTOL+"_shot", "sounds/pistol_shot.ogg");
+	loadSound("weapon_" + Weapon::REVOLVER + "_shot", "sounds/revolver_shot.ogg");
+
+	loadSound("weapon_reload", "sounds/reload.ogg");
 }
 
 bool AssetManager::init(char* arg0) {

@@ -9,27 +9,24 @@ Unauthorized copying or editing this file, via any medium is strictly prohibited
 Proprietary and confidential
 */
 
-#ifndef GAME_H
-#define GAME_H
+#ifndef INVENTORY_H
+#define INVENTORY_H
 
-#include <SFML/Network.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "../Logger.h"
 #include "Constants.h"
 
-#include "Player.h"
+enum class ItemType {
+	EMPTY,
+	WEAPON,
+	MINE,
+	MEDKIT
+};
 
-class Game {
-public:
-	void addPlayer(std::string name);
-	void addBullet(Bullet bullet);
-
-	void moveBullets();
-
-	std::vector<Player> players;
-	std::vector<Bullet> bullets;
-
-	void tick();
+struct Item {
+	ItemType type;
+	int data; //for weapons it is index in players' weapons array, for other items - amount / quantity
 };
 
 #endif

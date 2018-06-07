@@ -18,10 +18,71 @@ Player::Player(std::string nickname) {
 	dirty = false;
 	accel = sf::Vector2f(0.0f,0.0f);
 	direction = 0;
+	hp = Constants::MAX_PLAYER_HP;
+
+	//clear inventory
+	for (int i = 0; i < Constants::PLAYER_SLOTS; i++) {
+		setEmptySlot(i);
+	}
+
+	currentSlot = 0;
 }
 
 
-const std::string & Player::getNickname()
-{
+const std::string & Player::getNickname() {
 	return nickname;
+}
+
+void Player::setEmptySlot(int index) {
+	items[index].type = ItemType::EMPTY;
+	items[index].data = 0;
+}
+
+void Player::setWeapon(int index, std::string type) {
+	items[index].type = ItemType::WEAPON;
+	items[index].data = index;
+
+	weapons[index] = Weapon::createWeapon(type);
+}
+
+bool Player::isSlotFree(int index) {
+	return items[index].type == ItemType::EMPTY;
+}
+
+bool Player::hasEmptySlots() {
+	for (int i = 0; i < Constants::PLAYER_SLOTS; i++) {
+		if (isSlotFree(i)) return true;
+	}
+
+	return false;
+}
+
+int Player::getEmptySlot() {
+	for (int i = 0; i < Constants::PLAYER_SLOTS; i++) {
+		if (isSlotFree(i)) return i;
+	}
+
+	return -1;
+}
+
+int Player::getEmptyOrSelectedSlot() {
+	int es = getEmptySlot();
+
+	if (es == -1) {
+		return currentSlot;
+	} else {
+		return es;
+	}
+}
+
+float Player::getWatchAngle() {
+	return 0.0f;
+}
+
+Weapon & Player::getWeapon() {
+	return weapons[currentSlot];
+}
+
+Item & Player::getItem() {
+	return items[currentSlot];
 }

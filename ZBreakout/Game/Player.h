@@ -15,7 +15,10 @@ Proprietary and confidential
 #include <SFML/Network.hpp>
 
 #include "../Logger.h"
+
 #include "Constants.h"
+#include "Inventory.h"
+#include "Weapon.h"
 
 class Player {
 public:
@@ -27,9 +30,26 @@ public:
 	sf::Vector2f accel;
 	
 	int direction;
+	int hp;
+	int currentSlot;
 
 	//for game/server only
 	bool dirty;
+	
+	// inventory
+	Item items[Constants::PLAYER_SLOTS];
+	Weapon weapons[Constants::PLAYER_SLOTS];
+
+	void setEmptySlot(int index);
+	void setWeapon(int index, std::string type);
+	bool isSlotFree(int index);
+	bool hasEmptySlots();
+	int getEmptySlot();
+	int getEmptyOrSelectedSlot();
+	float getWatchAngle();
+
+	Weapon& getWeapon();
+	Item& getItem();
 private:
 	std::string nickname;
 };

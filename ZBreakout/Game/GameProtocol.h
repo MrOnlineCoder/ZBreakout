@@ -67,7 +67,20 @@ enum class NetMessage {
 	CL_PLAYERMOVE,
 	SV_PLAYERMOVE,
 
+	CL_PLAYERSETSLOT,
+	SV_PLAYERSETSLOT,
+
 	SV_PLAYERCHANGE,
+
+	SV_ADDWEAPON,
+	CL_BUYWEAPON,
+
+	CL_SLOTCHANGE,
+
+	CL_SHOOT,
+	SV_SHOTMADE,
+
+	SV_RELOADGUN,
 
 	SV_PHASE,
 	SV_TIME,
@@ -113,5 +126,8 @@ sf::Packet& operator <<(sf::Packet& packet, const sf::Vector2f& arg);
 
 sf::Packet& operator >>(sf::Packet& packet, Player& arg);
 sf::Packet& operator <<(sf::Packet& packet, Player& arg);
+
+sf::Packet& operator >>(sf::Packet& packet, Bullet& arg);
+sf::Packet& operator <<(sf::Packet& packet, Bullet& arg);
 
 #endif

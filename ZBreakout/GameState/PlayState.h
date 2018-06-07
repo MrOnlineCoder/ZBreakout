@@ -10,18 +10,24 @@ Proprietary and confidential
 */
 
 //STD includes
+#include <sstream>
 
 //Thirdparty includes
 #include <SFML/Graphics.hpp>
 
 //Project includes
-#include "../Logger.h"
 #include "GameState.h"
 #include "StateManager.h"
+
+#include "../Logger.h"
+
 #include "../GUI/TextButton.h"
+#include "../GUI/FPS.h"
+
 #include "../Game/Game.h"
 #include "../Game/Renderer.h"
 #include "../Game/Chat.h"
+#include "../Game/Level.h"
 
 class PlayState : public GameState {
 public:
@@ -32,20 +38,27 @@ public:
 	void input(sf::Event ev);
 	void update();
 
-
 private:
+	void loadThreadFunc();
+	sf::Thread lvlLoadThread;
+
 	Game game;
 	Renderer renderer;
 
 	Chat chat;
 
+	Level lvl;
+	std::string levelName;
+
 	sf::View playerView;
-	sf::View levelView;
+	sf::View guiView;
 
 	sf::CircleShape cc;
 
 	void processNetwork();
 	void processPacket(sf::Packet& packet);
+
+	void setPlayerCurrentSlot(int slot);
 
 	sf::Text status;
 	bool loaded;
@@ -53,4 +66,9 @@ private:
 	int playerID;
 
 	sf::TcpSocket socket;
+
+	bool debug;
+	sf::Text debugTxt;
+	std::stringstream debugStream;
+	FPS fps;
 };

@@ -142,6 +142,59 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 
 		return;
 	}
+	if (netmsg == NetMessage::CL_BUYWEAPON) {
+		WeaponType type;
+		packet >> type;
+
+		givePlayerWeapon(sender, type);
+		return;
+	}
+
+	if (netmsg == NetMessage::CL_SLOTCHANGE) {
+		int slot;
+		packet >> slot;
+
+		game.players[sender].currentSlot = slot;
+	}
+
+	if (netmsg == NetMessage::CL_SHOOT) {
+		Player& pl = game.players[sender];
+		if (pl.isSlotFree(pl.currentSlot)) return;
+
+		if (pl.getItem().type != ItemType::WEAPON) return;
+
+		Weapon& wpn = pl.getWeapon();
+
+		if (wpn.getAmmo() == 0) {
+			if (wpn.reloadClock.getElapsedTime().asSeconds() > wpn.getReloadTime()) {
+				wpn.ammo = wpn.getMaxAmmo();
+			} else {
+				return;
+			}
+		}
+
+		if (wpn.isAuto()) {
+			if (wpn.fireClock.getElapsedTime().asSeconds() < wpn.getFireDelay()) return;
+		}
+
+		wpn.fireClock.restart();
+		wpn.ammo--;
+
+		if (wpn.ammo <= 0) wpn.reloadClock.restart();
+
+		Bullet bullet;
+		bullet.damage = wpn.getDamage();
+		bullet.shooter = sender;
+		bullet.pos = pl.pos;
+		bullet.angle = pl.direction * 90;
+		bullet.type = wpn.getType();
+
+		game.addBullet(bullet);
+
+		sf::Packet shotPacket;
+		shotPacket << NetMessage::SV_SHOTMADE << bullet;
+		broadcast(shotPacket);
+	}
 }
 
 void GameServer::kick(int who, std::string msg) {
@@ -163,6 +216,17 @@ void GameServer::sendGameDelta() {
 			game.players[i].dirty = false;
 		}
 	}
+}
+
+void GameServer::givePlayerWeapon(PlayerID id, std::string type) {
+	game.players[id].setWeapon(game.players[id].getEmptyOrSelectedSlot(), type);
+
+	sf::Packet packet;
+	packet << NetMessage::SV_ADDWEAPON << type;
+
+	sockets[id].send(packet);
+
+	_LOG_.log("GameServer/givePlayerWeapon", "Given player #"+std::to_string(id)+" weapon "+type);
 }
 
 void GameServer::broadcast(sf::Packet & packet) {
