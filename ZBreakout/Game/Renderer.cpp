@@ -11,6 +11,10 @@ Proprietary and confidential
 
 #include "Renderer.h"
 
+Renderer::Renderer()
+{
+}
+
 void Renderer::init(StateManager & mgr){
 	manager = &mgr;
 	window = &manager->getWindow();
@@ -20,6 +24,10 @@ void Renderer::init(StateManager & mgr){
 	setup();
 
 	_LOG_.log("Renderer", "Renderer ready.");
+}
+
+void Renderer::setLevel(tmx::Map & map) {
+	levelTiles.loadFromMap(map, 0);
 }
 
 void Renderer::drawPlayer(Player & pl) {
@@ -61,6 +69,23 @@ void Renderer::drawInventory(Player & pl) {
 void Renderer::drawBullet(Bullet& b) {
 	bulletShape.setPosition(b.pos);
 	window->draw(bulletShape);
+}
+
+void Renderer::drawLevel() {
+	window->draw(levelTiles);
+}
+
+void Renderer::drawDebug() {
+	for (auto& rect : *debug.walls) {
+		wallRect.setSize(sf::Vector2f(rect.width, rect.height));
+		wallRect.setPosition(sf::Vector2f(rect.left, rect.top));
+
+		window->draw(wallRect);
+	}
+
+	plRect.setPosition(sf::Vector2f(plSpr.getPosition().x - plSpr.getGlobalBounds().width/2, plSpr.getPosition().y - plSpr.getGlobalBounds().height/2));
+	plRect.setSize(sf::Vector2f(plSpr.getGlobalBounds().width, plSpr.getGlobalBounds().height));
+	window->draw(plRect);
 }
 
 void Renderer::updateItemText(Player& pl) {
@@ -120,4 +145,13 @@ void Renderer::setup() {
 	//bullets
 	bulletShape.setFillColor(sf::Color::Yellow);
 	bulletShape.setRadius(BULLET_RADIUS);
+
+	//debug
+	wallRect.setFillColor(sf::Color::White);
+	wallRect.setOutlineThickness(1.5f);
+	wallRect.setOutlineColor(sf::Color::Yellow);
+
+	plRect.setFillColor(sf::Color(255,255,255,0));
+	plRect.setOutlineColor(sf::Color::White);
+	plRect.setOutlineThickness(2.5f);
 }

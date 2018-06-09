@@ -20,9 +20,6 @@ bool Level::loadFromFile(std::string path) {
 		return false;
 	}
 
-	tilesBg.loadFromMap(map, 0);
-	objects.loadFromMap(map, 1);
-
 	const auto& layers = map.getLayers();
 
 	for (const auto& layer : layers) {
@@ -36,29 +33,12 @@ bool Level::loadFromFile(std::string path) {
 		}
 	}
 
-	debugRect.setFillColor(sf::Color(255, 255, 255, 5));
-	debugRect.setOutlineColor(sf::Color::White);
-	debugRect.setOutlineThickness(2.0f);
-
 	return true;
-}
-
-void Level::render(sf::RenderWindow & window) {
-	window.draw(tilesBg);
-
-	if (debugMode) {
-		for (auto& rect : solids) {
-			debugRect.setSize(sf::Vector2f(rect.width, rect.height));
-			debugRect.setPosition(sf::Vector2f(rect.left, rect.top));
-
-			window.draw(debugRect);
-		}
-	}
 }
 
 bool Level::collide(sf::FloatRect r)
 {
-	for (auto& rect : solids) {
+	for (auto& rect : walls) {
 		if (rect.intersects(r)) {
 			return true;
 		}
@@ -71,8 +51,12 @@ const sf::Vector2f & Level::getStartPosition() {
 	return startPos;
 }
 
-void Level::setDebugMode(bool arg) {
-	debugMode = arg;
+std::vector<sf::FloatRect>& Level::getWalls() {
+	return walls;
+}
+
+tmx::Map & Level::getTMXMap() {
+	return map;
 }
 
 void Level::parseObject(const tmx::Object & obj) {
@@ -82,15 +66,15 @@ void Level::parseObject(const tmx::Object & obj) {
 		return;
 	}
 
-	if (obj.getType() == LVL_SOLID) {
+	if (obj.getType() == LVL_WALL) {
 		sf::FloatRect rect;
 		rect.left = obj.getAABB().left;
 		rect.top = obj.getAABB().top;
 		rect.width = obj.getAABB().width;
 		rect.height = obj.getAABB().height;
 
-		solids.push_back(rect);
-		std::cout << "Parsed solid object: " << rect.left << "x, " << rect.top << "y, " << rect.width << "w, " << rect.height << "y \n";
+		walls.push_back(rect);
+		std::cout << "Parsed wall object: " << rect.left << "x, " << rect.top << "y, " << rect.width << "w, " << rect.height << "y \n";
 		return;
 	}
 }

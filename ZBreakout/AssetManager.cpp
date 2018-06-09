@@ -36,6 +36,7 @@ void AssetManager::loadAll() {
 	loadTexture("weapon_"+Weapon::PISTOL, "weapons/pistol.png");
 	loadSound("weapon_"+Weapon::PISTOL+"_shot", "sounds/pistol_shot.ogg");
 	loadSound("weapon_" + Weapon::REVOLVER + "_shot", "sounds/revolver_shot.ogg");
+	loadSound("weapon_" + Weapon::AK47 + "_shot", "sounds/ak47_shot.ogg");
 
 	loadSound("weapon_reload", "sounds/reload.ogg");
 }

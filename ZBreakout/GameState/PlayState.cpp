@@ -13,7 +13,7 @@ Proprietary and confidential
 
 PlayState::PlayState(StateManager* mgr)
 	: GameState(mgr),
-	lvlLoadThread(&PlayState::loadThreadFunc, this){
+	lvlLoadThread(&PlayState::loadThreadFunc, this) {
 
 	status.setFont(manager->getAssets().getFont("main"));
 	status.setPosition(25, manager->getWindowSize().y - status.getCharacterSize() - 25);
@@ -61,16 +61,17 @@ void PlayState::render(sf::RenderWindow& window) {
 		window.draw(status);
 		return;
 	}
+	window.clear(sf::Color(0, 100, 0));
 	
 	window.setView(playerView);
-
-	lvl.render(window);
 
 	for (int i = 0; i < game.bullets.size(); i++) {
 		Bullet& b = game.bullets[i];
 
 		renderer.drawBullet(b);
-	}
+	} 
+
+	renderer.drawLevel();
 
 	for (int i = 0; i < game.players.size(); i++) {
 		Player& pl = game.players[i];
@@ -89,7 +90,13 @@ void PlayState::render(sf::RenderWindow& window) {
 	renderer.drawPlayerHPBar(game.players[playerID]);
 	renderer.drawInventory(game.players[playerID]);
 
-	if (debug) window.draw(debugTxt);
+	if (debug) {
+		window.setView(playerView);
+		renderer.drawDebug();
+
+		window.setView(guiView);
+		window.draw(debugTxt);
+	}
 
 	fps.update();
 }
@@ -109,7 +116,7 @@ void PlayState::input(sf::Event ev) {
 
 		if (ev.key.code == sf::Keyboard::J) {
 			sf::Packet p;
-			p << NetMessage::CL_BUYWEAPON << Weapon::PISTOL;
+			p << NetMessage::CL_BUYWEAPON << Weapon::AK47;
 			socket.send(p);
 		}
 
@@ -124,6 +131,7 @@ void PlayState::input(sf::Event ev) {
 	if (ev.type == sf::Event::KeyReleased) {
 		if (ev.key.code == sf::Keyboard::F3) {
 			debug = !debug;
+			renderer.debug.enabled = debug;
 			return;
 		}
 
@@ -140,12 +148,7 @@ void PlayState::input(sf::Event ev) {
 
 	if (ev.type == sf::Event::MouseButtonReleased) {
 		if (ev.mouseButton.button == sf::Mouse::Left) {
-			if (game.players[playerID].isSlotFree(game.players[playerID].currentSlot)) return;
-
-			sf::Packet packet;
-			packet << NetMessage::CL_SHOOT;
-
-			socket.send(packet);
+			shoot();
 		}
 	}
 }
@@ -164,13 +167,24 @@ void PlayState::update() {
 		
 		game.moveBullets();
 
-		if (me.getWeapon().getAmmo() == 0) {
-			if (me.getWeapon().reloadClock.getElapsedTime().asSeconds() > me.getWeapon().getReloadTime()) {
-				me.getWeapon().ammo = me.getWeapon().getMaxAmmo();
-				renderer.updateItemText(me);
+		if (me.isHoldingWeapon()) {
+			if (me.getWeapon().getAmmo() == 0) {
+				if (me.getWeapon().reloadClock.getElapsedTime().asSeconds() > me.getWeapon().getReloadTime()) {
+					me.getWeapon().ammo = me.getWeapon().getMaxAmmo();
+					renderer.updateItemText(me);
+				}
+			} else {
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) if (me.getWeapon().isAuto()) {
+					if (me.getWeapon().fireClock.getElapsedTime().asSeconds() > me.getWeapon().getFireDelay()) {
+						shoot();
+						me.getWeapon().fireClock.restart();
+					}
+				}
 			}
 		}
 	}
+
+
 
 	if (debug) {
 		debugStream.str("");
@@ -179,6 +193,7 @@ void PlayState::update() {
 		debugStream << "Tickrate: " << Constants::GAME_TICKRATE << "\n";
 		debugStream << "Version: " << Constants::VERSION << "\n";
 		debugStream << "currentSlot: " << game.players[playerID].currentSlot << "\n";
+		debugStream << "bullets: " << game.bullets.size() << "\n";
 
 		debugTxt.setString(debugStream.str());
 	}
@@ -188,6 +203,9 @@ void PlayState::loadThreadFunc() {
 	lvl.loadFromFile(ASSETS_PATH + "/levels/" + levelName + ".tmx");
 	playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
 	loaded = true;
+
+	renderer.setLevel(lvl.getTMXMap());
+	renderer.debug.walls = &lvl.getWalls();
 }
 
 void PlayState::processNetwork() {
@@ -240,7 +258,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 		packet >> id;
 		playerID = id;
 
-		manager->getAssets().playSound("lol");
+		//manager->getAssets().playSound("lol");
 
 		_LOG_.log("Client", "Set own player ID to " + std::to_string(playerID));
 	}
@@ -252,6 +270,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 		chat.addMessage(sf::Color::White, name+" joined the game.");
 
 		game.addPlayer(name);
+		game.players[game.players.size() - 1].pos = lvl.getStartPosition();
 		return;
 	}
 
@@ -285,6 +304,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 
 		game.addBullet(b);
 
+		//if we are shooters, then update weapon reload
 		if (b.shooter == playerID) {
 			Player& me = game.players[playerID];
 
@@ -298,7 +318,6 @@ void PlayState::processPacket(sf::Packet & packet) {
 			renderer.updateItemText(me);
 		}
 
-		manager->getAssets().playSound(Weapon::getWeaponShotSoundPath(b.type));
 		return;
 	}
 }
@@ -312,4 +331,21 @@ void PlayState::setPlayerCurrentSlot(int slot) {
 	socket.send(packet);
 
 	renderer.updateItemText(game.players[playerID]);
+}
+
+void PlayState::shoot() {
+	if (game.players[playerID].isSlotFree(game.players[playerID].currentSlot)) return;
+
+	Player& me = game.players[playerID];
+
+	if (!me.isHoldingWeapon()) return;
+
+	if (me.getWeapon().getAmmo() > 0) {
+		manager->getAssets().playSound(Weapon::getWeaponShotSoundPath(me.getWeapon().getType()));
+	}
+
+	sf::Packet packet;
+	packet << NetMessage::CL_SHOOT;
+
+	socket.send(packet);
 }

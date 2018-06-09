@@ -14,18 +14,18 @@ Proprietary and confidential
 Player::Player(std::string nickname) {
 	this->nickname = nickname;
 
+	//Set default data
 	pos = sf::Vector2f(50.0f,50.0f);
 	dirty = false;
 	accel = sf::Vector2f(0.0f,0.0f);
 	direction = 0;
 	hp = Constants::MAX_PLAYER_HP;
+	currentSlot = 0;
 
-	//clear inventory
+	//Clear inventory
 	for (int i = 0; i < Constants::PLAYER_SLOTS; i++) {
 		setEmptySlot(i);
 	}
-
-	currentSlot = 0;
 }
 
 
@@ -62,7 +62,7 @@ int Player::getEmptySlot() {
 		if (isSlotFree(i)) return i;
 	}
 
-	return -1;
+	return -1; //check for -1 required to avoid index out of bounds exception
 }
 
 int Player::getEmptyOrSelectedSlot() {
@@ -77,6 +77,10 @@ int Player::getEmptyOrSelectedSlot() {
 
 float Player::getWatchAngle() {
 	return 0.0f;
+}
+
+bool Player::isHoldingWeapon() {
+	return items[currentSlot].type == ItemType::WEAPON;
 }
 
 Weapon & Player::getWeapon() {

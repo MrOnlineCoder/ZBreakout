@@ -11,7 +11,8 @@ Proprietary and confidential
 
 #include "Engine.h"
 
-Engine::Engine(int argc, char* argv[]) {
+Engine::Engine(int argc, char* argv[])
+: server(assets) {
 	_LOG_.init();
 	ELOG("Created engine instance");
 
@@ -42,10 +43,10 @@ int Engine::run() {
 		}
 
 		stateManager.update();
+		assets.update();
 
 		window.clear();
 
-		assets.update();
 		stateManager.render();
 
 		window.display();

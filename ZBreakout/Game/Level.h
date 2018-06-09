@@ -13,10 +13,12 @@ Proprietary and confidential
 #define LEVEL_H
 
 #include <SFML/Graphics.hpp>
-#include "SFMLOrthogonalLayer.hpp"
+
+#include <tmxlite/Map.hpp>
+#include <iostream>
 
 const static std::string LVL_START_NAME = "level_start";
-const static std::string LVL_SOLID = "solid";
+const static std::string LVL_WALL = "wall";
 
 class Level {
 public:
@@ -24,13 +26,11 @@ public:
 
 	bool loadFromFile(std::string path);
 
-	void render(sf::RenderWindow& window);
-
 	bool collide(sf::FloatRect r);
 
 	const sf::Vector2f& getStartPosition();
-
-	void setDebugMode(bool arg);
+	std::vector<sf::FloatRect>& getWalls();
+	tmx::Map& getTMXMap();
 private:
 	void parseObject(const tmx::Object& obj);
 
@@ -38,14 +38,7 @@ private:
 
 	tmx::Map map;
 
-	std::vector<sf::FloatRect> solids;
-
-	MapLayer tilesBg;
-	MapLayer objects;
-
-	sf::RectangleShape debugRect;
-
-	bool debugMode;
+	std::vector<sf::FloatRect> walls;
 };
 
 #endif

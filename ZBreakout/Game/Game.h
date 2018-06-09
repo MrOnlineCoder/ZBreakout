@@ -18,18 +18,41 @@ Proprietary and confidential
 #include "Constants.h"
 
 #include "Player.h"
+#include "Level.h"
 
+/*
+	Game class
+	Contains a lot of game-related data and methods for manipulation.
+
+	Present both on client and the server, should be synced and supported in up-to-date state.
+	On client is used only as source for rendering input
+	On server as main game instance.
+	
+	tick() should be called each GameServer tick, so game events will happen.
+*/
 class Game {
 public:
+	void setPlayerSize(sf::Vector2f arg);
+
 	void addPlayer(std::string name);
 	void addBullet(Bullet bullet);
 
+	//also used by client
 	void moveBullets();
 
 	std::vector<Player> players;
 	std::vector<Bullet> bullets;
 
 	void tick();
+
+	Level level;
+private:
+	//used for collision detection
+	sf::Vector2f playerSize;
+	sf::FloatRect playerAABB;
+	bool canPlayerMove(PlayerID index);
+	//
+
 };
 
 #endif

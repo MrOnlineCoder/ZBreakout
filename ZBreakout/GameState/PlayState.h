@@ -59,6 +59,7 @@ private:
 	void processPacket(sf::Packet& packet);
 
 	void setPlayerCurrentSlot(int slot);
+	void shoot();
 
 	sf::Text status;
 	bool loaded;

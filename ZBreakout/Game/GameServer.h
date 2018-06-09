@@ -19,30 +19,44 @@ Proprietary and confidential
 #include "GameProtocol.h"
 #include "Game.h"
 #include "Level.h"
+#include "../AssetManager.h"
 
 class GameServer {
 public:
-	GameServer();
+	GameServer(AssetManager& assets);
 
 	bool start();
 	void stop();
+
+	//resets game and server state
 	void reset();
 private:
+	//called in a seperate thread
+	//Main server loop
+	//Accepts new connections, processes new data and updates game state
 	void loop();
+
+	//process single packet from client
 	void processPacket(int sender, sf::Packet packet);
+
+	//KICK CLIENTS ASS OUT!
 	void kick(int who, std::string msg);
+
+	//sends game state delta (change), called because of tick()
 	void sendGameDelta();
 
+	//gives player a weapon
 	void givePlayerWeapon(PlayerID id, std::string type);
 
+	//broadcast given packet to all clients
 	void broadcast(sf::Packet& packet);
 
 	bool running;
 	int connected;
 
-	Game game;
+	AssetManager& gameAssets;
 
-	Level level;
+	Game game;
 
 	sf::TcpListener tcpServer;
 	sf::Thread serverThread;

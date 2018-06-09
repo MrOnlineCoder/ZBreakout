@@ -9,43 +9,6 @@ Unauthorized copying or editing this file, via any medium is strictly prohibited
 Proprietary and confidential
 */
 
-/*
-	ZBreakout Network Game Protocol:
-
-	Types:
-	"string"
-	%number%
-	#vector (position) #
-	@enum@
-
-	Format:
-	<Network Message Name> ... args ... - optional description 
-
-	* Connection *
-	SV_HANDSHAKE "server ID" - sent by server immidiately after client connection
-	CL_HANDSHAKE "nickname" "version" - client's response to SV_HANDSHAKE.
-	SV_KICKED "reason" - kick client
-	SV_LOADLEVEL "levelname" - load level. should be sent after successful handshake
-	SV_ADDPLAYER "name" - add player to client side.
-
-	* Game State *
-	SV_PHASE @phase@ - sets phase (LOBBY, FIGHT, COOLDOWN, END)
-	SV_TIME %phase_time% %total_time%
-	SV_ROUND %number% - tells about new round
-
-	* Players *
-	SV_MOVEPLAYER %pid% %x% %y% - move player
-	SV_LIFEPLAYER %pid% @alive/dead@
-	
-
-	* Zombies *
-	SV_ADDZOMBIE %id% @type@ %x% %y%
-	SV_MOVEZOMBIE %id% %x% %y%
-	SV_KILLZOMBIE %id%
-
-
-*/
-
 #ifndef GAMEPROTOCOL_H
 #define GAMEPROTOCOL_H
 
@@ -55,30 +18,47 @@ Proprietary and confidential
 #include "Constants.h"
 #include "Player.h"
 
+/*
+	ZBreakout Network Game Protocol:
+
+	Each field in this enum defines a Network Message
+	It is casted to int when sent over network.
+
+	============================================================
+	!!! DO NOT CHANGE THE ORDER OF FIELDS AFTER GAME RELEASE !!!
+
+	    !!! THIS CAN BREAK THE GAME FOR OLDER CLIENTS !!!
+	============================================================
+
+	SV_ prefix means 'sent by server to clients'
+	CL_ prefix means 'sent from client to server'
+*/
+
+
 enum class NetMessage {
-	SV_HANDSHAKE = 0,
-	CL_HANDSHAKE,
-	SV_KICKED,
+	SV_HANDSHAKE = 0,  //handshake response from server
+	CL_HANDSHAKE, //client handshake
+	SV_KICKED, //sent by server to inform client that he was kicked. socket disconnects immediately after that message was sent
 
-	SV_LOADLEVEL,
-	SV_ADDPLAYER,
-	SV_PLAYERIDENTIFY,
+	SV_LOADLEVEL, //sends level name to clients for load
+	SV_ADDPLAYER, //signals that a player was added/connected
+	SV_PLAYERIDENTIFY, //sent to each client and tells them what PlayerID does they have (in game.players vector)
 
-	CL_PLAYERMOVE,
-	SV_PLAYERMOVE,
+	CL_PLAYERMOVE, //client should sent if they want to move the player
+	SV_PLAYERMOVE, 
 
-	CL_PLAYERSETSLOT,
+	CL_PLAYERSETSLOT, //updates client current slot on server, MUST be sent to avoid logic paradoxes
 	SV_PLAYERSETSLOT,
 
-	SV_PLAYERCHANGE,
+	SV_PLAYERCHANGE, //change of player state
 
-	SV_ADDWEAPON,
-	CL_BUYWEAPON,
+	SV_ADDWEAPON, //add weapon to player
+	CL_BUYWEAPON, //try to buy weapon
 
 	CL_SLOTCHANGE,
 
-	CL_SHOOT,
-	SV_SHOTMADE,
+	CL_SHOOT, //SHOOT!
+	SV_SHOTMADE, //send by server to inform that a shot was made
 
 	SV_RELOADGUN,
 
@@ -94,6 +74,7 @@ enum class NetMessage {
 	SV_KILLZOMBIE
 };
 
+//signature, used in handshake
 const static std::string SERVER_HANDSHAKE = "00xZBREAKOUT_SERVERx00";
 
 class GameProtocol {
@@ -116,6 +97,8 @@ class GameProtocol {
 	private:
 		static void sendPacket(sf::TcpSocket& socket, sf::Packet& packet);
 };
+
+//sf::Packet overrides, used as convinience
 
 sf::Packet& operator <<(sf::Packet& packet, const NetMessage& msg);
 sf::Packet& operator >>(sf::Packet& packet, NetMessage& msg);

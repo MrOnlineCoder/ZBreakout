@@ -11,6 +11,13 @@ Proprietary and confidential
 
 #include "Game.h"
 
+void Game::setPlayerSize(sf::Vector2f arg) {
+	playerSize = arg;
+
+	playerAABB.width = arg.x;
+	playerAABB.height = arg.y;
+}
+
 void Game::addPlayer(std::string name) {
 	players.push_back(Player(name));
 }
@@ -44,8 +51,20 @@ void Game::tick() {
 
 		if (player.accel.x == 0 && player.accel.y == 0) return;
 
-		player.pos += player.accel;
+		if (!canPlayerMove(plid)) {
+			printf("coolide at %f,%f \n", player.pos.x, player.pos.y);
+			return;
+		}
 
+		player.pos += player.accel;
 		player.dirty = true;
+
 	}
+}
+
+bool Game::canPlayerMove(PlayerID index) {
+	playerAABB.left = players[index].pos.x - playerAABB.width/2 + players[index].accel.x;
+	playerAABB.top = players[index].pos.y - playerAABB.height/2 + players[index].accel.y;
+
+	return !level.collide(playerAABB);
 }

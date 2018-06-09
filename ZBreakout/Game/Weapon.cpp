@@ -1,5 +1,6 @@
 #include "Weapon.h"
 
+//set weapon types
 const std::string Weapon::PISTOL = "pistol";
 const std::string Weapon::AK47 = "ak47";
 const std::string Weapon::SHOTGUN = "shotgun";
@@ -53,6 +54,10 @@ float Weapon::getReloadTime() {
 	return reloadTime;
 }
 
+//Weapon instances Factory
+//Change to change gameplay :)
+//
+//Pistol definition is REQUIRED, infinite recursion will occur if missing
 Weapon Weapon::createWeapon(std::string type) {
 	if (type == Weapon::PISTOL) {
 		return Weapon(Weapon::PISTOL, 20, 1.5f, 3, 0.0f);
@@ -60,6 +65,10 @@ Weapon Weapon::createWeapon(std::string type) {
 
 	if (type == Weapon::REVOLVER) {
 		return Weapon(Weapon::REVOLVER, 8, 1.5f, 3, 0.0f);
+	}
+
+	if (type == Weapon::AK47) {
+		return Weapon(Weapon::AK47, 30, 2.5f, 5, 0.1f);
 	}
 
 	return Weapon::createWeapon(Weapon::PISTOL);

@@ -11,8 +11,9 @@ Proprietary and confidential
 
 #include "GameServer.h"
 
-GameServer::GameServer()
-: serverThread(&GameServer::loop, this){
+GameServer::GameServer(AssetManager& assets)
+: serverThread(&GameServer::loop, this),
+gameAssets(assets) {
 	tcpServer.setBlocking(false);
 
 	running = false;
@@ -27,6 +28,11 @@ bool GameServer::start() {
 	_LOG_.log("GameServer", "Starting GameServer on port "+std::to_string(Constants::GAME_PORT));
 
 	reset();
+
+	_LOG_.log("GameServer", "Loading level "+Constants::LEVEL);
+
+	game.level.loadFromFile("Assets/levels/" + Constants::LEVEL + ".tmx");
+	game.setPlayerSize(sf::Vector2f(gameAssets.getTexture("player").getSize()));
 
 	running = true;
 
@@ -96,6 +102,8 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 	packet >> netmsg;
 
 	if (netmsg == NetMessage::CL_HANDSHAKE) {
+		//verifyClientHandshake returns nickname of the player if handshake was successfull
+		//empty string on fail
 		std::string nick = GameProtocol::verifyClientHandshake(packet);
 
 		_LOG_.log("GameServer", "Received nickname "+nick+" from client #"+ std::to_string(sender));
@@ -120,6 +128,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 		broadcast(GameProtocol::addPlayerPacket(nick));
 
 		game.addPlayer(nick);
+		game.players[game.players.size() - 1].pos = game.level.getStartPosition();
 		return;
 	}
 
@@ -142,6 +151,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 
 		return;
 	}
+
 	if (netmsg == NetMessage::CL_BUYWEAPON) {
 		WeaponType type;
 		packet >> type;
@@ -155,6 +165,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 		packet >> slot;
 
 		game.players[sender].currentSlot = slot;
+		return;
 	}
 
 	if (netmsg == NetMessage::CL_SHOOT) {
@@ -194,6 +205,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 		sf::Packet shotPacket;
 		shotPacket << NetMessage::SV_SHOTMADE << bullet;
 		broadcast(shotPacket);
+		return;
 	}
 }
 

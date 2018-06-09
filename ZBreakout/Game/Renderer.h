@@ -20,6 +20,8 @@ Proprietary and confidential
 
 #include "../GameState/StateManager.h"
 
+#include "SFMLOrthogonalLayer.hpp"
+
 const int HPBAR_SIZE = 250;
 const int HPBAR_HEIGHT = 20;
 const float HPBAR_OUTLINE = 3.0f;
@@ -28,22 +30,39 @@ const int ITEMTEXT_PADDING = 100;
 
 const float BULLET_RADIUS = 2.5f;
 
+struct RenderDebugData {
+	std::vector<sf::FloatRect>* walls;
+	bool enabled;
+};
+
 class Renderer {
 	public:
+		Renderer();
+
 		void init(StateManager& mgr);
+
+		void setLevel(tmx::Map& map);
+
 		void drawPlayer(Player& pl);
 		void drawPlayerHPBar(Player& pl);
 		void drawInventory(Player& pl);
 		void drawBullet(Bullet& b);
+		void drawLevel();
+		void drawDebug();
 
 		void updateItemText(Player& pl);
 
 		sf::Vector2f getPlayerCenter(sf::Vector2f arg);
+
+		RenderDebugData debug;
 	private:
 		void setup();
 
 		sf::RenderWindow* window;
 		StateManager* manager;
+		
+		//Level
+		MapLayer levelTiles;
 
 		//Player
 		sf::Text plName;
@@ -58,6 +77,10 @@ class Renderer {
 
 		//Bullets
 		sf::CircleShape bulletShape;
+
+		//debug
+		sf::RectangleShape wallRect;
+		sf::RectangleShape plRect;
 };
 
 #endif

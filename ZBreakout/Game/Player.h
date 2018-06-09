@@ -26,29 +26,52 @@ public:
 
 	const std::string& getNickname();
 
+	//public positions and acceleration
 	sf::Vector2f pos;
 	sf::Vector2f accel;
 	
+	//Direction in which player is looking
+	//depends on the texture
+	//direction in degrees = direction * 90
 	int direction;
+
+	//Health
 	int hp;
+
+	//Current inventory slot
 	int currentSlot;
 
-	//for game/server only
+	//For game/server only
 	bool dirty;
 	
-	// inventory
+	//Inventory
+
+	//This is all items
 	Item items[Constants::PLAYER_SLOTS];
+
+	//Possible weapons, items array store index of weapon here.
 	Weapon weapons[Constants::PLAYER_SLOTS];
 
+	//Sets slot #`index` as empty
 	void setEmptySlot(int index);
+
+	//Sets weapon to slot #index
 	void setWeapon(int index, std::string type);
+
 	bool isSlotFree(int index);
+
 	bool hasEmptySlots();
+
 	int getEmptySlot();
+
 	int getEmptyOrSelectedSlot();
+
+	//no-use
 	float getWatchAngle();
 
-	Weapon& getWeapon();
+	bool isHoldingWeapon();
+
+	Weapon& getWeapon(); //use only after isHoldingWeapon() check
 	Item& getItem();
 private:
 	std::string nickname;
