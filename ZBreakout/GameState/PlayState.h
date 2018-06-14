@@ -68,6 +68,8 @@ private:
 
 	sf::TcpSocket socket;
 
+	sf::Clock clock;
+
 	bool debug;
 	sf::Text debugTxt;
 	std::stringstream debugStream;

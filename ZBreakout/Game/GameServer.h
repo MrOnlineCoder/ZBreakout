@@ -51,12 +51,17 @@ private:
 	//broadcast given packet to all clients
 	void broadcast(sf::Packet& packet);
 
+	//Shoots some funky bullets
+	void shoot(PlayerID who);
+
 	bool running;
 	int connected;
 
 	AssetManager& gameAssets;
 
 	Game game;
+
+	sf::Clock clock;
 
 	sf::TcpListener tcpServer;
 	sf::Thread serverThread;

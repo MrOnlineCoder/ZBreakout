@@ -10,9 +10,21 @@ Proprietary and confidential
 */
 
 #include "Renderer.h"
+#include <math.h>
+#include <sstream>
+#include <iomanip>
+#include "Random.h"
 
-Renderer::Renderer()
-{
+std::stringstream roundingStream;
+
+Renderer::Renderer() {
+	Random::init();
+}
+
+std::string roundNumber(float num) {
+	roundingStream.str("");
+	roundingStream << std::fixed << std::setprecision(1) << num;
+	return roundingStream.str();
 }
 
 void Renderer::init(StateManager & mgr){
@@ -31,6 +43,19 @@ void Renderer::setLevel(tmx::Map & map) {
 }
 
 void Renderer::drawPlayer(Player & pl) {
+
+	if (pl.isHoldingWeapon()) {
+		if (pl.getWeapon().getType() == Weapon::AK47) {
+			plSpr.setTexture(manager->getAssets().getTexture("player_ak47"));
+		}
+		else if (pl.getWeapon().getType() == Weapon::PISTOL || pl.getWeapon().getType() == Weapon::REVOLVER) {
+			plSpr.setTexture(manager->getAssets().getTexture("player_pistol"));
+			plSpr.setTextureRect(sf::IntRect(0, 0, plSpr.getTexture()->getSize().x, plSpr.getTexture()->getSize().y));
+		}
+	}
+	else {
+		plSpr.setTexture(manager->getAssets().getTexture("player"));
+	}
 
 	plSpr.setPosition(pl.pos);
 	plSpr.setRotation(pl.direction * 90);
@@ -88,26 +113,77 @@ void Renderer::drawDebug() {
 	window->draw(plRect);
 }
 
+void Renderer::drawZombie(Zombie & z) {
+	zombieSpr.setPosition(z.pos);
+
+	if (z.hp < z.getMaxHp()) {
+		zombieHp.setSize(sf::Vector2f((z.hp * ZOMBIEBAR_SIZE) / z.getMaxHp(), 10));
+		zombieHp.setOrigin(zombieHp.getGlobalBounds().width / 2, zombieHp.getGlobalBounds().height / 2);
+		zombieHp.setPosition(zombieSpr.getPosition() + sf::Vector2f(zombieSpr.getGlobalBounds().width / 2, -3));
+		window->draw(zombieHp);
+	}
+	
+	window->draw(zombieSpr);
+}
+
 void Renderer::updateItemText(Player& pl) {
-	std::string wpnString = "";
+	wpnText.clear();
 
 	if (pl.isSlotFree(pl.currentSlot)) {
-		wpnString = "[ Empty ]";
+		wpnText << sf::Color::White << sf::Text::Bold << "[ Empty ]";
 	} else if (pl.getItem().type == ItemType::WEAPON) {
 		Weapon& wpn = pl.getWeapon();
 
 		if (wpn.getAmmo() == 0) {
-			wpnString = "[ " + Weapon::getWeaponName(wpn.getType()) + " ] Reloading...";
+			float reloadTimeLeft = wpn.getReloadTime() - wpn.reloadClock.getElapsedTime().asSeconds();
+			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] Reloading... (" << sf::Color::Yellow << roundNumber(reloadTimeLeft) << " s.)";
 		} else {
-			wpnString = "[ " + Weapon::getWeaponName(wpn.getType()) + " ] " + std::to_string(wpn.getAmmo()) + " / " + std::to_string(wpn.getMaxAmmo());
+			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] " << sf::Color(153,153,153) << std::to_string(wpn.getAmmo()) << " / " + std::to_string(wpn.getMaxAmmo());
 		}
 
 		
 	}
 
-	wpnText.setString(wpnString);
 	wpnText.setPosition(sf::Vector2f(manager->getWindowSize().x / 2 - wpnText.getGlobalBounds().width / 2,
 		manager->getWindowSize().y - ITEMTEXT_PADDING - wpnText.getGlobalBounds().height));
+}
+
+void Renderer::playDamageEffect(sf::Vector2f pos, int dmg) {
+	DamageHit hit;
+
+	sf::Vector2f tpos =pos;
+	tpos.x += zombieSpr.getGlobalBounds().width / 2;
+	tpos.y += zombieSpr.getGlobalBounds().height / 2;
+
+	tpos.x += Random::randomInt(-50, 50);
+	tpos.y += Random::randomInt(-50, 50);
+
+	hit.pos = tpos;
+
+	hit.dmg = dmg;
+	hit.scale = 0.6f;
+
+	hits.push_back(hit);
+}
+
+void Renderer::renderDamageHits() {
+	for (std::vector<DamageHit>::size_type i = 0; i < hits.size(); i++) {
+		DamageHit& hit = hits[i];
+
+		hitTxt.setPosition(hit.pos);
+		hitTxt.setString("- "+std::to_string(hit.dmg));
+		hitTxt.setOrigin(hitTxt.getGlobalBounds().width / 2, hitTxt.getGlobalBounds().height / 2);
+		hitTxt.setScale(hit.scale, hit.scale);
+		
+		window->draw(hitTxt);
+
+		if (hit.scale < 1.0f) hit.scale += 0.33f;
+
+		if (hit.alive.getElapsedTime().asMilliseconds() > 500) {
+			hits.erase(hits.begin() + i);
+			return;
+		}
+	}
 }
 
 sf::Vector2f Renderer::getPlayerCenter(sf::Vector2f arg) {
@@ -138,13 +214,21 @@ void Renderer::setup() {
 		hpBar.getGlobalBounds().height + HPBAR_OUTLINE));
 	
 	//items and inventory
-	wpnText.setFillColor(sf::Color::White);
 	wpnText.setCharacterSize(24);
 	wpnText.setFont(manager->getAssets().getFont("main"));
 
 	//bullets
 	bulletShape.setFillColor(sf::Color::Yellow);
 	bulletShape.setRadius(BULLET_RADIUS);
+
+	hitTxt.setFont(manager->getAssets().getFont("main"));
+	hitTxt.setFillColor(sf::Color::Yellow);
+	hitTxt.setOutlineThickness(0.55f);
+	hitTxt.setOutlineColor(sf::Color::White);
+	hitTxt.setCharacterSize(20);
+	hitTxt.setStyle(sf::Text::Bold);
+
+
 
 	//debug
 	wallRect.setFillColor(sf::Color::White);
@@ -154,4 +238,9 @@ void Renderer::setup() {
 	plRect.setFillColor(sf::Color(255,255,255,0));
 	plRect.setOutlineColor(sf::Color::White);
 	plRect.setOutlineThickness(2.5f);
+
+	//Zombie
+	zombieSpr.setTexture(manager->getAssets().getTexture("zombie_idle"));
+	zombieHp.setFillColor(sf::Color::Green);
+	zombieHp.setSize(sf::Vector2f(ZOMBIEBAR_SIZE, ZOMBIEBAR_SIZE));
 }

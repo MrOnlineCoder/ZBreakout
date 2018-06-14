@@ -19,6 +19,7 @@ Proprietary and confidential
 
 #include "Player.h"
 #include "Level.h"
+#include "Zombie.h"
 
 /*
 	Game class
@@ -32,16 +33,22 @@ Proprietary and confidential
 */
 class Game {
 public:
+	Game();
+
 	void setPlayerSize(sf::Vector2f arg);
+	void setZombieSize(sf::Vector2f size);
 
 	void addPlayer(std::string name);
 	void addBullet(Bullet bullet);
+
+	void addZombie(ZombieType type, sf::Vector2f pos);
 
 	//also used by client
 	void moveBullets();
 
 	std::vector<Player> players;
 	std::vector<Bullet> bullets;
+	std::vector<Zombie> zombies;
 
 	void tick();
 
@@ -50,9 +57,17 @@ private:
 	//used for collision detection
 	sf::Vector2f playerSize;
 	sf::FloatRect playerAABB;
+
+	sf::FloatRect zombieAABB;
 	bool canPlayerMove(PlayerID index);
+	int findBulletDamageToZombie(Zombie& z);
 	//
 
+	void spawnZombie();
+
+	sf::Clock spawnClock;
+	sf::Clock gameClock;
+	bool nospawn;
 };
 
 #endif

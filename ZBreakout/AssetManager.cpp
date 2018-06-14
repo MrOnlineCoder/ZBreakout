@@ -13,7 +13,7 @@ Proprietary and confidential
 
 AssetManager::AssetManager() {
 	isRandom = false;
-	volume = 100;
+	volume = 80;
 
 	music.setLoop(false);
 }
@@ -27,6 +27,8 @@ void AssetManager::loadAll() {
 
 	//le player
 	loadTexture("player", "player/idle.png");
+	loadTexture("player_ak47", "player/ak47.png");
+	loadTexture("player_pistol", "player/pistol.png");
 
 	//intro
 	loadSound("intro_shot", "sounds/intro_shot.ogg");
@@ -37,6 +39,12 @@ void AssetManager::loadAll() {
 	loadSound("weapon_"+Weapon::PISTOL+"_shot", "sounds/pistol_shot.ogg");
 	loadSound("weapon_" + Weapon::REVOLVER + "_shot", "sounds/revolver_shot.ogg");
 	loadSound("weapon_" + Weapon::AK47 + "_shot", "sounds/ak47_shot.ogg");
+	loadSound("weapon_" + Weapon::SHOTGUN + "_shot", "sounds/shotgun_shot.ogg");
+
+	//zombie
+	loadTexture("zombie_idle", "zombie/zombie_idle.png");
+	loadSound("zombie_death", "sounds/zombie_death.ogg");
+	loadSound("zombie_hit", "sounds/zombie_hit.ogg");
 
 	loadSound("weapon_reload", "sounds/reload.ogg");
 }
@@ -137,6 +145,7 @@ void AssetManager::update() {
 			(*i)->stop();
 			delete *i;
 			playing.erase(i++); 
+			
 		}
 		else
 		{

@@ -38,6 +38,9 @@ public:
 	//Health
 	int hp;
 
+	//Gold
+	int gold;
+
 	//Current inventory slot
 	int currentSlot;
 

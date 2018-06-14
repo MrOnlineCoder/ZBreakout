@@ -60,15 +60,19 @@ float Weapon::getReloadTime() {
 //Pistol definition is REQUIRED, infinite recursion will occur if missing
 Weapon Weapon::createWeapon(std::string type) {
 	if (type == Weapon::PISTOL) {
-		return Weapon(Weapon::PISTOL, 20, 1.5f, 3, 0.0f);
+		return Weapon(Weapon::PISTOL, 20, 1.5f, 2, 0.0f);
 	}
 
 	if (type == Weapon::REVOLVER) {
-		return Weapon(Weapon::REVOLVER, 8, 1.5f, 3, 0.0f);
+		return Weapon(Weapon::REVOLVER, 8, 1.5f, 4, 0.0f);
 	}
 
 	if (type == Weapon::AK47) {
-		return Weapon(Weapon::AK47, 30, 2.5f, 5, 0.1f);
+		return Weapon(Weapon::AK47, 30, 2.5f, 3, 0.1f);
+	}
+
+	if (type == Weapon::SHOTGUN) {
+		return Weapon(Weapon::SHOTGUN, 5, 2.5f, 2, 0.0f);
 	}
 
 	return Weapon::createWeapon(Weapon::PISTOL);

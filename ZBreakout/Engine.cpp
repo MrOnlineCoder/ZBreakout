@@ -10,25 +10,26 @@ Proprietary and confidential
 */
 
 #include "Engine.h"
+#include "Game/Random.h"
 
 Engine::Engine(int argc, char* argv[])
 : server(assets) {
 	_LOG_.init();
 	ELOG("Created engine instance");
 
+	ELOG("Loading assets...");
+	assets.loadAll();
+
 	ELOG("Creating game window...");
 	window.create(sf::VideoMode(1280, 720), "ZBreakout", sf::Style::Close | sf::Style::Titlebar);
 	window.setFramerateLimit(60);
 	window.setKeyRepeatEnabled(false);
 
-	ELOG("Loading assets...");
-	assets.loadAll();
-
-	ELOG("Creating StateManager");
+	ELOG("Creating StateManager...");
 	stateManager.init(&window, &assets, &server);
 
-	ELOG("Seeding random generator");
-	std::srand(std::time(0));
+	ELOG("Initialzing random generator...");
+	Random::init();
 }
 
 int Engine::run() {

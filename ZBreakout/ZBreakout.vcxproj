@@ -75,6 +75,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>E:\DEVELOPMENT\C++\SOURCES\tmxlite-master\tmxlite-master\tmxlite\include;E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -137,6 +138,7 @@
     <ClCompile Include="Game\Renderer.cpp" />
     <ClCompile Include="Game\RichText.cpp" />
     <ClCompile Include="Game\Weapon.cpp" />
+    <ClCompile Include="Game\Zombie.cpp" />
     <ClCompile Include="GUI\FPS.cpp" />
     <ClCompile Include="GUI\TextButton.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -153,19 +155,27 @@
     <ClInclude Include="GameState\StateManager.h" />
     <ClInclude Include="Game\Chat.h" />
     <ClInclude Include="Game\Constants.h" />
+    <ClInclude Include="Game\Effect.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\GameProtocol.h" />
     <ClInclude Include="Game\GameServer.h" />
     <ClInclude Include="Game\Inventory.h" />
     <ClInclude Include="Game\Level.h" />
     <ClInclude Include="Game\Player.h" />
+    <ClInclude Include="Game\Random.h" />
     <ClInclude Include="Game\Renderer.h" />
     <ClInclude Include="Game\RichText.h" />
     <ClInclude Include="Game\SFMLOrthogonalLayer.hpp" />
     <ClInclude Include="Game\Weapon.h" />
+    <ClInclude Include="Game\Zombie.h" />
     <ClInclude Include="GUI\FPS.h" />
     <ClInclude Include="GUI\TextButton.h" />
     <ClInclude Include="Logger.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game\Random.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,6 +17,7 @@ Level::Level() {
 
 bool Level::loadFromFile(std::string path) {
 	if (!map.load(path)) {
+		_LOG_.log("Level", "Failed to find/load file "+path);
 		return false;
 	}
 
@@ -33,6 +34,8 @@ bool Level::loadFromFile(std::string path) {
 		}
 	}
 
+
+	_LOG_.log("Level", "Loaded level "+path);
 	return true;
 }
 
@@ -55,6 +58,10 @@ std::vector<sf::FloatRect>& Level::getWalls() {
 	return walls;
 }
 
+std::vector<sf::Vector2f>& Level::getSpawners() {
+	return spawners;
+}
+
 tmx::Map & Level::getTMXMap() {
 	return map;
 }
@@ -62,7 +69,7 @@ tmx::Map & Level::getTMXMap() {
 void Level::parseObject(const tmx::Object & obj) {
 	if (obj.getName() == LVL_START_NAME) {
 		startPos = sf::Vector2f(obj.getPosition().x, obj.getPosition().y);
-		std::cout << "Parsed start pos " << startPos.x << ", " << startPos.y << std::endl;
+		_LOG_.log("Level", "Found object StartPosition: "+std::to_string(obj.getPosition().x)+", "+std::to_string(obj.getPosition().y));
 		return;
 	}
 
@@ -74,7 +81,18 @@ void Level::parseObject(const tmx::Object & obj) {
 		rect.height = obj.getAABB().height;
 
 		walls.push_back(rect);
-		std::cout << "Parsed wall object: " << rect.left << "x, " << rect.top << "y, " << rect.width << "w, " << rect.height << "y \n";
+		_LOG_.log("Level", "Found object Wall: " + std::to_string(obj.getPosition().x) + ", " + std::to_string(obj.getPosition().y) + ", w="+std::to_string(obj.getAABB().width)+", h="+ std::to_string(obj.getAABB().width));
+		return;
+	}
+
+	if (obj.getType() == LVL_SPAWNER) {
+		sf::Vector2f pos;
+
+		pos.x = obj.getPosition().x;
+		pos.y = obj.getPosition().y;
+
+		spawners.push_back(pos);
+		_LOG_.log("Level", "Found object Spawner: " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
 		return;
 	}
 }

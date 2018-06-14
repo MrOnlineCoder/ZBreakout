@@ -17,6 +17,7 @@ Proprietary and confidential
 #include "../Logger.h"
 #include "Constants.h"
 #include "Player.h"
+#include "Zombie.h"
 
 /*
 	ZBreakout Network Game Protocol:
@@ -59,6 +60,7 @@ enum class NetMessage {
 
 	CL_SHOOT, //SHOOT!
 	SV_SHOTMADE, //send by server to inform that a shot was made
+	SV_AMMOCHANGE,
 
 	SV_RELOADGUN,
 
@@ -71,6 +73,7 @@ enum class NetMessage {
 
 	SV_ADDZOMBIE,
 	SV_MOVEZOMBIE,
+	SV_CHANGEZOMBIE,
 	SV_KILLZOMBIE
 };
 
@@ -112,5 +115,11 @@ sf::Packet& operator <<(sf::Packet& packet, Player& arg);
 
 sf::Packet& operator >>(sf::Packet& packet, Bullet& arg);
 sf::Packet& operator <<(sf::Packet& packet, Bullet& arg);
+
+sf::Packet& operator >>(sf::Packet& packet, ZombieType& arg);
+sf::Packet& operator <<(sf::Packet& packet, ZombieType arg);
+
+sf::Packet& operator >>(sf::Packet& packet, Zombie& arg);
+sf::Packet& operator <<(sf::Packet& packet, Zombie& arg);
 
 #endif

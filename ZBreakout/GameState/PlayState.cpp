@@ -31,10 +31,6 @@ PlayState::PlayState(StateManager* mgr)
 
 	playerID = -1;
 
-	cc.setFillColor(sf::Color::Green);
-	cc.setRadius(20);
-	cc.setPosition(10,10);
-
 	chat.init(manager->getAssets(), 20, manager->getWindowSize().y - 10);
 
 	debugTxt.setFont(manager->getAssets().getFont("main"));
@@ -73,15 +69,19 @@ void PlayState::render(sf::RenderWindow& window) {
 
 	renderer.drawLevel();
 
+	for (int i = 0; i < game.zombies.size(); i++) {
+		Zombie& z = game.zombies[i];
+
+		renderer.drawZombie(z);
+	}
+
 	for (int i = 0; i < game.players.size(); i++) {
 		Player& pl = game.players[i];
 
-		window.draw(cc);
-
 		renderer.drawPlayer(pl);
-
-		window.setView(window.getDefaultView());
 	}
+
+	renderer.renderDamageHits();
 
 	window.setView(guiView);
 	
@@ -118,12 +118,29 @@ void PlayState::input(sf::Event ev) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::AK47;
 			socket.send(p);
+			return;
 		}
 
 		if (ev.key.code == sf::Keyboard::K) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::REVOLVER;
 			socket.send(p);
+			return;
+		}
+
+		if (ev.key.code == sf::Keyboard::L) {
+			sf::Packet p;
+			p << NetMessage::CL_BUYWEAPON << Weapon::PISTOL;
+			socket.send(p);
+			return;
+		}
+
+
+		if (ev.key.code == sf::Keyboard::H) {
+			sf::Packet p;
+			p << NetMessage::CL_BUYWEAPON << Weapon::SHOTGUN;
+			socket.send(p);
+			return;
 		}
 	}
 
@@ -154,6 +171,7 @@ void PlayState::input(sf::Event ev) {
 }
 
 void PlayState::update() {
+	clock.restart();
 	sf::Packet packet;
 
 	if (socket.getRemoteAddress() != sf::IpAddress::None) if (socket.receive(packet) == sf::Socket::Status::Done) {
@@ -171,13 +189,14 @@ void PlayState::update() {
 			if (me.getWeapon().getAmmo() == 0) {
 				if (me.getWeapon().reloadClock.getElapsedTime().asSeconds() > me.getWeapon().getReloadTime()) {
 					me.getWeapon().ammo = me.getWeapon().getMaxAmmo();
-					renderer.updateItemText(me);
 				}
+
+				renderer.updateItemText(me);
 			} else {
 				if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) if (me.getWeapon().isAuto()) {
 					if (me.getWeapon().fireClock.getElapsedTime().asSeconds() > me.getWeapon().getFireDelay()) {
-						shoot();
 						me.getWeapon().fireClock.restart();
+						shoot();
 					}
 				}
 			}
@@ -280,6 +299,8 @@ void PlayState::processPacket(sf::Packet & packet) {
 		packet >> id;
 		packet >> game.players[id];
 
+		printf("moved player %f,%f \n", game.players[playerID].pos.x, game.players[playerID].pos.y);
+
 		playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
 
 		return;
@@ -304,20 +325,63 @@ void PlayState::processPacket(sf::Packet & packet) {
 
 		game.addBullet(b);
 
-		//if we are shooters, then update weapon reload
-		if (b.shooter == playerID) {
-			Player& me = game.players[playerID];
+		return;
+	}
 
-			me.getWeapon().ammo--;
-			
-			if (me.getWeapon().ammo == 0) {
-				me.getWeapon().reloadClock.restart();
-				manager->getAssets().playSound("weapon_reload");
-			}
+	if (netmsg == NetMessage::SV_AMMOCHANGE) {
+		Player& me = game.players[playerID];
 
-			renderer.updateItemText(me);
+		me.getWeapon().ammo--;
+
+		if (me.getWeapon().ammo == 0) {
+			me.getWeapon().reloadClock.restart();
+			manager->getAssets().playSound("weapon_reload");
 		}
 
+		renderer.updateItemText(me);
+		return;
+	}
+
+	if (netmsg == NetMessage::SV_ADDZOMBIE) {
+		ZombieType type;
+		sf::Vector2f pos;
+
+		packet >> type;
+		packet >> pos;
+		
+		game.addZombie(type, pos);
+		return;
+	}
+
+	if (netmsg == NetMessage::SV_CHANGEZOMBIE) {
+		int index;
+		Zombie zombie = Zombie::createZombie(ZombieType::NORMAL);
+		
+		packet >> index;
+		packet >> zombie;
+
+		Zombie& old = game.zombies[index];
+
+		if (old.hp > zombie.hp) {
+			int dmg = old.hp - zombie.hp; //dmg is the difference between old and new hp, so - the real damage
+
+			manager->getAssets().playSound("zombie_hit");
+
+			renderer.playDamageEffect(old.pos, dmg);
+		}
+
+		game.zombies[index] = zombie;
+		return;
+	}
+
+	if (netmsg == NetMessage::SV_KILLZOMBIE) {
+		int index;
+
+		packet >> index;
+
+		manager->getAssets().playSound("zombie_death");
+
+		game.zombies.erase(game.zombies.begin() + index);
 		return;
 	}
 }

@@ -21,6 +21,7 @@ Player::Player(std::string nickname) {
 	direction = 0;
 	hp = Constants::MAX_PLAYER_HP;
 	currentSlot = 0;
+	gold = 0;
 
 	//Clear inventory
 	for (int i = 0; i < Constants::PLAYER_SLOTS; i++) {

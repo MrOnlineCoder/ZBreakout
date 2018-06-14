@@ -32,7 +32,9 @@ bool GameServer::start() {
 	_LOG_.log("GameServer", "Loading level "+Constants::LEVEL);
 
 	game.level.loadFromFile("Assets/levels/" + Constants::LEVEL + ".tmx");
+	
 	game.setPlayerSize(sf::Vector2f(gameAssets.getTexture("player").getSize()));
+	game.setZombieSize(sf::Vector2f(gameAssets.getTexture("zombie_idle").getSize()));
 
 	running = true;
 
@@ -193,18 +195,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 
 		if (wpn.ammo <= 0) wpn.reloadClock.restart();
 
-		Bullet bullet;
-		bullet.damage = wpn.getDamage();
-		bullet.shooter = sender;
-		bullet.pos = pl.pos;
-		bullet.angle = pl.direction * 90;
-		bullet.type = wpn.getType();
-
-		game.addBullet(bullet);
-
-		sf::Packet shotPacket;
-		shotPacket << NetMessage::SV_SHOTMADE << bullet;
-		broadcast(shotPacket);
+		shoot(sender);
 		return;
 	}
 }
@@ -219,14 +210,46 @@ void GameServer::kick(int who, std::string msg) {
 }
 
 void GameServer::sendGameDelta() {
+	clock.restart();
+
 	for (std::vector<Player>::size_type i = 0; i < game.players.size(); i++) {
 		if (game.players[i].dirty) {
 			Player& p = game.players[i];
 
 			broadcast(GameProtocol::playerUpdate(i, p));
 
+			printf("server move\n");
+
 			game.players[i].dirty = false;
 		}
+	}
+
+	for (std::vector<Zombie>::size_type i = 0; i < game.zombies.size(); i++) {
+		Zombie& zm = game.zombies[i];
+
+		if (zm.ticksAlive == 0) { //zombie just spawned
+			sf::Packet packet;
+
+			packet << NetMessage::SV_ADDZOMBIE << zm.getType() << zm.pos;
+
+			broadcast(packet);
+		}
+
+		if (zm.dirty) {
+			sf::Packet packet;
+			packet << NetMessage::SV_CHANGEZOMBIE << i << zm;
+			broadcast(packet);
+
+			zm.dirty = false;
+
+			if (!zm.isAlive()) {
+				sf::Packet packet;
+				packet << NetMessage::SV_KILLZOMBIE << i;
+				broadcast(packet);
+			}
+		}
+
+		zm.ticksAlive++;
 	}
 }
 
@@ -245,4 +268,47 @@ void GameServer::broadcast(sf::Packet & packet) {
 	for (int i = 0; i < connected; i++) {
 		sockets[i].send(packet);
 	}
+}
+
+void GameServer::shoot(PlayerID who) {
+	Player& pl = game.players[who];
+	Weapon& wpn = pl.getWeapon();
+
+	Bullet bullet;
+	bullet.damage = wpn.getDamage();
+	bullet.shooter = who;
+	bullet.pos = pl.pos;
+	bullet.angle = pl.direction * 90;
+	bullet.type = wpn.getType();
+
+	game.addBullet(bullet);
+
+	sf::Packet shotPacket;
+	shotPacket << NetMessage::SV_SHOTMADE << bullet;
+	broadcast(shotPacket);
+
+
+	//if player made a shot from shotgun, shoot more bullets:
+	if (wpn.getType() == Weapon::SHOTGUN) {
+		//bullet 2
+		bullet.angle = pl.direction * 90 + 5;
+		game.addBullet(bullet);
+
+		sf::Packet shotPacket2;
+		shotPacket2 << NetMessage::SV_SHOTMADE << bullet;
+		broadcast(shotPacket2);
+
+		//bullet 3
+		bullet.angle = pl.direction * 90 - 5;
+		game.addBullet(bullet);
+
+		shotPacket2.clear();
+		shotPacket2 << NetMessage::SV_SHOTMADE << bullet;
+		broadcast(shotPacket2);
+	}
+	
+
+	sf::Packet ammoPacket;
+	ammoPacket << NetMessage::SV_AMMOCHANGE;
+	sockets[who].send(ammoPacket);
 }

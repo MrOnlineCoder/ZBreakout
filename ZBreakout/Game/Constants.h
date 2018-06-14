@@ -29,7 +29,7 @@ namespace Constants {
 
 	const int PLAYER_SLOTS = 5;
 
-	const int BULLET_SPEED = 50;
+	const int BULLET_SPEED = 40;
 
 	const static float PLAYER_SPEED = 20.0f;
 

@@ -22,6 +22,8 @@ Proprietary and confidential
 
 #include "SFMLOrthogonalLayer.hpp"
 
+#include "RichText.h"
+
 const int HPBAR_SIZE = 250;
 const int HPBAR_HEIGHT = 20;
 const float HPBAR_OUTLINE = 3.0f;
@@ -30,9 +32,18 @@ const int ITEMTEXT_PADDING = 100;
 
 const float BULLET_RADIUS = 2.5f;
 
+const int ZOMBIEBAR_SIZE = 100;
+
 struct RenderDebugData {
 	std::vector<sf::FloatRect>* walls;
 	bool enabled;
+};
+
+struct DamageHit {
+	int dmg;
+	sf::Vector2f pos;
+	float scale;
+	sf::Clock alive;
 };
 
 class Renderer {
@@ -49,8 +60,13 @@ class Renderer {
 		void drawBullet(Bullet& b);
 		void drawLevel();
 		void drawDebug();
+		void drawZombie(Zombie& z);
 
 		void updateItemText(Player& pl);
+		
+		void playDamageEffect(sf::Vector2f pos, int dmg);
+
+		void renderDamageHits();
 
 		sf::Vector2f getPlayerCenter(sf::Vector2f arg);
 
@@ -73,10 +89,16 @@ class Renderer {
 		sf::RectangleShape hpBarOut;
 
 		//Items and inventory
-		sf::Text wpnText; //weapon title
+		sfe::RichText wpnText; //weapon title
 
 		//Bullets
 		sf::CircleShape bulletShape;
+		std::vector<DamageHit> hits;
+		sf::Text hitTxt;
+
+		//Zombies
+		sf::Sprite zombieSpr;
+		sf::RectangleShape zombieHp;
 
 		//debug
 		sf::RectangleShape wallRect;

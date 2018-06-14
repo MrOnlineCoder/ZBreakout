@@ -134,3 +134,26 @@ sf::Packet& operator >>(sf::Packet& packet, Bullet& arg) {
 sf::Packet& operator <<(sf::Packet& packet, Bullet& arg) {
 	return packet << arg.angle << arg.damage << arg.pos << arg.shooter << arg.type;
 }
+
+sf::Packet& operator >>(sf::Packet& packet, ZombieType& arg) {
+	int val;
+	packet >> val;
+	arg = static_cast<ZombieType>(val);
+	return packet;
+}
+
+sf::Packet& operator <<(sf::Packet& packet, ZombieType arg) {
+	packet << static_cast<int>(arg);
+
+	return packet;
+}
+
+sf::Packet& operator >>(sf::Packet& packet, Zombie& arg) {
+	packet >> arg.pos >> arg.hp;
+	return packet;
+}
+
+sf::Packet& operator <<(sf::Packet& packet, Zombie& arg) {
+	packet << arg.pos << arg.hp;
+	return packet;
+}
