@@ -55,7 +55,6 @@ private:
 
 	sf::CircleShape cc;
 
-	void processNetwork();
 	void processPacket(sf::Packet& packet);
 
 	void setPlayerCurrentSlot(int slot);
@@ -66,12 +65,16 @@ private:
 
 	int playerID;
 
-	sf::TcpSocket socket;
+	sf::UdpSocket socket;
 
 	sf::Clock clock;
+
+	sf::IpAddress serverIP;
 
 	bool debug;
 	sf::Text debugTxt;
 	std::stringstream debugStream;
 	FPS fps;
+
+	unsigned short port;
 };

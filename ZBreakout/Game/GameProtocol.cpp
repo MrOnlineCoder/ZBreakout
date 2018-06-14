@@ -28,10 +28,8 @@ bool GameProtocol::verifyServerHandshake(sf::Packet & packet) {
 	return true;
 }
 
-void GameProtocol::sendClientHandshake(sf::TcpSocket & socket, std::string nickname) {
-	sf::Packet packet;
-	packet << NetMessage::CL_HANDSHAKE << nickname << Constants::VERSION;
-	sendPacket(socket, packet);
+void GameProtocol::sendClientHandshake(sf::UdpSocket& socket, sf::IpAddress& ip, std::string nickname) {
+	
 }
 
 std::string GameProtocol::verifyClientHandshake(sf::Packet & packet) {

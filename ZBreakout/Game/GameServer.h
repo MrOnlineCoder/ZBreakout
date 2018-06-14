@@ -63,9 +63,10 @@ private:
 
 	sf::Clock clock;
 
-	sf::TcpListener tcpServer;
 	sf::Thread serverThread;
-	sf::TcpSocket sockets[Constants::MAX_PLAYERS];
+	sf::UdpSocket udpServer;
+
+	sf::IpAddress clients[Constants::MAX_PLAYERS];
 };
 
 #endif

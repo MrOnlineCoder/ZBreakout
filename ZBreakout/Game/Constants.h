@@ -17,7 +17,8 @@ typedef unsigned int PlayerID;
 namespace Constants {
 	const static int GAME_TICKRATE = 24;
 
-	const static int GAME_PORT = 2801;
+	const static unsigned short CLIENT_PORT = 49228;
+	const static unsigned short SERVER_PORT = 49229;
 	
 	const static int MAX_PLAYERS = 3;
 	

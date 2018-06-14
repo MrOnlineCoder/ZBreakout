@@ -14,7 +14,7 @@ Proprietary and confidential
 GameServer::GameServer(AssetManager& assets)
 : serverThread(&GameServer::loop, this),
 gameAssets(assets) {
-	tcpServer.setBlocking(false);
+	udpServer.setBlocking(false);
 
 	running = false;
 }
@@ -25,7 +25,7 @@ bool GameServer::start() {
 		return false;
 	}
 
-	_LOG_.log("GameServer", "Starting GameServer on port "+std::to_string(Constants::GAME_PORT));
+	_LOG_.log("GameServer", "Starting GameServer on port "+std::to_string(Constants::CLIENT_PORT));
 
 	reset();
 
@@ -38,9 +38,9 @@ bool GameServer::start() {
 
 	running = true;
 
-	_LOG_.log("GameServer", "Setting up TCP server on port " + std::to_string(Constants::GAME_PORT));
+	_LOG_.log("GameServer", "Setting up UDP server socket on port " + std::to_string(Constants::CLIENT_PORT));
 
-	if (tcpServer.listen(Constants::GAME_PORT) != sf::Socket::Done) {
+	if (udpServer.bind(Constants::SERVER_PORT, sf::IpAddress("127.0.0.1")) != sf::Socket::Done) {
 		_LOG_.log("GameServer", "ERROR: Failed to start TCP server on game port!");
 		return false;
 	}
@@ -54,7 +54,7 @@ bool GameServer::start() {
 void GameServer::stop() {
 	running = false;
 
-	tcpServer.close();
+	udpServer.unbind();
 
 	_LOG_.log("GameServer", "Server stopped.");
 }
@@ -66,8 +66,7 @@ void GameServer::reset() {
 	}
 
 	for (int i = 0; i < Constants::MAX_PLAYERS; i++) {
-		sockets[i].setBlocking(false);
-		sockets[i].disconnect();
+		clients[i] = sf::IpAddress::Any;
 	}
 
 	connected = 0;
@@ -76,17 +75,64 @@ void GameServer::reset() {
 void GameServer::loop() {
 
 	while (running) {
-		if (connected < Constants::MAX_PLAYERS) if (tcpServer.accept(sockets[connected]) == sf::Socket::Status::Done) {
-			_LOG_.log("GameServer", "TCP client connected, trying to add him as a player #"+std::to_string(connected));
-			sf::TcpSocket& client = sockets[connected];
-			GameProtocol::sendServerHandshake(client);
-			connected++;
-		}
 
-		for (int user = 0; user < connected + 1; user++) {
-			sf::Packet packet;
-			if (sockets[user].receive(packet) == sf::Socket::Status::Done) {
-				processPacket(user, packet);
+		sf::Packet packet;
+		sf::IpAddress ip;
+		unsigned short port = 1;
+
+		if (udpServer.receive(packet, ip, port) == sf::Socket::Status::Done) {
+			if (port == Constants::CLIENT_PORT) {
+				bool isNewClient = true;
+
+				for (int i = 0; i < connected; i++) {
+					if (ip == clients[i]) {
+						processPacket(i, packet);
+						isNewClient = false;
+						break;
+					}
+				}
+
+				if (isNewClient && connected < Constants::MAX_PLAYERS) {
+					NetMessage hmsg;
+					packet >> hmsg;
+
+					if (hmsg == NetMessage::CL_HANDSHAKE) {
+						std::string nick;
+						packet >> nick;
+
+						_LOG_.log("GameServer", "New client connected : "+nick+" from "+ip.toString()+":"+std::to_string(port));
+
+						if (nick.empty()) {
+							_LOG_.log("GameServer", "Client failed to do a correct handshake "+ip.toString());
+							return;
+						}
+
+						_LOG_.log("GameServer", "Handshake with " + nick + " complete. Sending level `" + Constants::LEVEL + "`");
+
+						clients[connected] = ip;
+
+						//send new player data about new players
+						for (int i = 0; i < game.players.size(); i++) {
+							udpServer.send(GameProtocol::addPlayerPacket(game.players[i].getNickname()), ip, Constants::CLIENT_PORT);
+						}
+						
+						//identify new player
+						udpServer.send(GameProtocol::identifyPlayerPacket(connected), ip, Constants::CLIENT_PORT);
+
+						//load level
+						sf::Packet packet;
+						packet << NetMessage::SV_LOADLEVEL << Constants::LEVEL;
+						udpServer.send(packet, ip, Constants::CLIENT_PORT);
+
+						//now add new player
+						broadcast(GameProtocol::addPlayerPacket(nick));
+
+						game.addPlayer(nick);
+						game.players[game.players.size() - 1].pos = game.level.getStartPosition();
+
+						connected++;
+					}
+				}
 			}
 		}
 
@@ -102,37 +148,6 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 	NetMessage netmsg;
 
 	packet >> netmsg;
-
-	if (netmsg == NetMessage::CL_HANDSHAKE) {
-		//verifyClientHandshake returns nickname of the player if handshake was successfull
-		//empty string on fail
-		std::string nick = GameProtocol::verifyClientHandshake(packet);
-
-		_LOG_.log("GameServer", "Received nickname "+nick+" from client #"+ std::to_string(sender));
-		
-		if (nick.empty()) {
-			_LOG_.log("GameServer", "Client failed to do a correct handshake - "+std::to_string(sender));
-			kick(sender, "Invalid handshake. Probably server's version is different from yours.");
-			return;
-		}
-
-
-		_LOG_.log("GameServer", "Handshake with "+ nick + " complete. Sending level `"+Constants::LEVEL+"`");
-
-		for (int i = 0; i < game.players.size(); i++) {
-			sockets[sender].send(GameProtocol::addPlayerPacket(game.players[i].getNickname()));
-		}
-
-		sockets[sender].send(GameProtocol::identifyPlayerPacket(sender));
-
-		GameProtocol::sendLevel(sockets[sender], Constants::LEVEL);
-
-		broadcast(GameProtocol::addPlayerPacket(nick));
-
-		game.addPlayer(nick);
-		game.players[game.players.size() - 1].pos = game.level.getStartPosition();
-		return;
-	}
 
 	if (netmsg == NetMessage::CL_PLAYERMOVE) {
 		sf::Vector2f dir;
@@ -204,9 +219,7 @@ void GameServer::kick(int who, std::string msg) {
 	sf::Packet kickPacket;
 	kickPacket << NetMessage::SV_KICKED << msg;
 
-	sockets[who].send(kickPacket);
-
-	sockets[who].disconnect();
+	udpServer.send(kickPacket, clients[who], Constants::CLIENT_PORT);
 }
 
 void GameServer::sendGameDelta() {
@@ -217,8 +230,6 @@ void GameServer::sendGameDelta() {
 			Player& p = game.players[i];
 
 			broadcast(GameProtocol::playerUpdate(i, p));
-
-			printf("server move\n");
 
 			game.players[i].dirty = false;
 		}
@@ -259,15 +270,13 @@ void GameServer::givePlayerWeapon(PlayerID id, std::string type) {
 	sf::Packet packet;
 	packet << NetMessage::SV_ADDWEAPON << type;
 
-	sockets[id].send(packet);
-
+	udpServer.send(packet, clients[id], Constants::CLIENT_PORT);
+	
 	_LOG_.log("GameServer/givePlayerWeapon", "Given player #"+std::to_string(id)+" weapon "+type);
 }
 
 void GameServer::broadcast(sf::Packet & packet) {
-	for (int i = 0; i < connected; i++) {
-		sockets[i].send(packet);
-	}
+	udpServer.send(packet, sf::IpAddress::Broadcast, Constants::CLIENT_PORT);
 }
 
 void GameServer::shoot(PlayerID who) {
@@ -310,5 +319,5 @@ void GameServer::shoot(PlayerID who) {
 
 	sf::Packet ammoPacket;
 	ammoPacket << NetMessage::SV_AMMOCHANGE;
-	sockets[who].send(ammoPacket);
+	udpServer.send(ammoPacket, clients[who], Constants::CLIENT_PORT);
 }

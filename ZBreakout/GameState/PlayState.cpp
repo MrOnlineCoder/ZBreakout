@@ -39,16 +39,23 @@ PlayState::PlayState(StateManager* mgr)
 	debugTxt.setFillColor(sf::Color::White);
 
 	debug = false;
+
+	serverIP = sf::IpAddress("127.0.0.1");
+	port = Constants::CLIENT_PORT;
 }
 
 void PlayState::init() {
 	loaded = false;
 	debug = false;
 
-	if (socket.connect(sf::IpAddress::LocalHost, Constants::GAME_PORT) == sf::Socket::Status::Done) {
-		status.setString("Connected to server! Waiting for handshake...");
-	}
+	if (socket.bind(Constants::CLIENT_PORT) == sf::Socket::Done) {
+		status.setString("UDP socket created, sending handshake...");
 
+		sf::Packet packet;
+		packet << NetMessage::CL_HANDSHAKE << "MrOnlineCoder" << Constants::VERSION;
+		socket.send(packet, serverIP, Constants::SERVER_PORT);
+	}
+	
 	_LOG_.log("PlayState", "Ready.");
 }
 
@@ -103,10 +110,10 @@ void PlayState::render(sf::RenderWindow& window) {
 
 void PlayState::input(sf::Event ev) {
 	if (ev.type == sf::Event::KeyPressed) {
-		if (ev.key.code == sf::Keyboard::W) socket.send(GameProtocol::clientMove(sf::Vector2f(0, -1)));
-		if (ev.key.code == sf::Keyboard::A) socket.send(GameProtocol::clientMove(sf::Vector2f(-1, 0)));
-		if (ev.key.code == sf::Keyboard::S) socket.send(GameProtocol::clientMove(sf::Vector2f(0, 1)));
-		if (ev.key.code == sf::Keyboard::D) socket.send(GameProtocol::clientMove(sf::Vector2f(1, 0)));
+		if (ev.key.code == sf::Keyboard::W) socket.send(GameProtocol::clientMove(sf::Vector2f(0, -1)), serverIP, Constants::SERVER_PORT);
+		if (ev.key.code == sf::Keyboard::A) socket.send(GameProtocol::clientMove(sf::Vector2f(-1, 0)), serverIP, Constants::SERVER_PORT);
+		if (ev.key.code == sf::Keyboard::S) socket.send(GameProtocol::clientMove(sf::Vector2f(0, 1)), serverIP, Constants::SERVER_PORT);
+		if (ev.key.code == sf::Keyboard::D) socket.send(GameProtocol::clientMove(sf::Vector2f(1, 0)), serverIP, Constants::SERVER_PORT);
 
 		if (ev.key.code == sf::Keyboard::Num1) setPlayerCurrentSlot(0);
 		if (ev.key.code == sf::Keyboard::Num2) setPlayerCurrentSlot(1);
@@ -117,21 +124,21 @@ void PlayState::input(sf::Event ev) {
 		if (ev.key.code == sf::Keyboard::J) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::AK47;
-			socket.send(p);
+			socket.send(p, serverIP, Constants::SERVER_PORT);
 			return;
 		}
 
 		if (ev.key.code == sf::Keyboard::K) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::REVOLVER;
-			socket.send(p);
+			socket.send(p, serverIP, Constants::SERVER_PORT);
 			return;
 		}
 
 		if (ev.key.code == sf::Keyboard::L) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::PISTOL;
-			socket.send(p);
+			socket.send(p, serverIP, Constants::SERVER_PORT);
 			return;
 		}
 
@@ -139,7 +146,7 @@ void PlayState::input(sf::Event ev) {
 		if (ev.key.code == sf::Keyboard::H) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::SHOTGUN;
-			socket.send(p);
+			socket.send(p, serverIP, Constants::SERVER_PORT);
 			return;
 		}
 	}
@@ -158,7 +165,7 @@ void PlayState::input(sf::Event ev) {
 			&& !sf::Keyboard::isKeyPressed(sf::Keyboard::A)
 			&& !sf::Keyboard::isKeyPressed(sf::Keyboard::S)
 			&& !sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-			socket.send(GameProtocol::clientMove(sf::Vector2f(0, 0)));
+			socket.send(GameProtocol::clientMove(sf::Vector2f(0, 0)), serverIP, Constants::SERVER_PORT);
 		}
 			
 	}
@@ -172,10 +179,14 @@ void PlayState::input(sf::Event ev) {
 
 void PlayState::update() {
 	clock.restart();
-	sf::Packet packet;
 
-	if (socket.getRemoteAddress() != sf::IpAddress::None) if (socket.receive(packet) == sf::Socket::Status::Done) {
-		processPacket(packet);
+	sf::Packet udpPacket;
+	sf::IpAddress ip;
+
+	if (socket.receive(udpPacket, ip, port) == sf::Socket::Status::Done) {
+		if (port == Constants::SERVER_PORT) {
+			processPacket(udpPacket);
+		}
 	}
 
 	
@@ -227,38 +238,16 @@ void PlayState::loadThreadFunc() {
 	renderer.debug.walls = &lvl.getWalls();
 }
 
-void PlayState::processNetwork() {
-	sf::Packet packet;
-	if (socket.receive(packet) == sf::Socket::Status::Done) {
-		processPacket(packet);
-	}
-}
 
 void PlayState::processPacket(sf::Packet & packet) {
 	NetMessage netmsg;
 	packet >> netmsg;
 
-	if (netmsg == NetMessage::SV_HANDSHAKE) {
-		if (!GameProtocol::verifyServerHandshake(packet)) {
-			status.setString("Cannot connect to the server: invalid handshake.");
-			socket.disconnect();
-			_LOG_.log("Client", "Server has wrong handshake signature.");
-		}
-		else {
-			status.setString("Server verified. Confirming handshake...");
-			_LOG_.log("Client", "Valid server, sending own handshake...");
-
-			GameProtocol::sendClientHandshake(socket, "MrOnlineCoder");
-		}
-
-		return;
-	}
-
 	if (netmsg == NetMessage::SV_KICKED) {
 		std::string msg;
 		packet >> msg;
 
-		socket.disconnect();
+		socket.unbind();
 
 		status.setString("Kicked: "+msg);
 		chat.addMessage(sf::Color::Red, "You were kicked from the server: "+msg);
@@ -280,6 +269,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 		//manager->getAssets().playSound("lol");
 
 		_LOG_.log("Client", "Set own player ID to " + std::to_string(playerID));
+		return;
 	}
 
 	if (netmsg == NetMessage::SV_ADDPLAYER) {
@@ -298,8 +288,6 @@ void PlayState::processPacket(sf::Packet & packet) {
 
 		packet >> id;
 		packet >> game.players[id];
-
-		printf("moved player %f,%f \n", game.players[playerID].pos.x, game.players[playerID].pos.y);
 
 		playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
 
@@ -392,7 +380,7 @@ void PlayState::setPlayerCurrentSlot(int slot) {
 	sf::Packet packet;
 	packet << NetMessage::CL_SLOTCHANGE << slot;
 
-	socket.send(packet);
+	socket.send(packet, serverIP, Constants::SERVER_PORT);
 
 	renderer.updateItemText(game.players[playerID]);
 }
@@ -411,5 +399,5 @@ void PlayState::shoot() {
 	sf::Packet packet;
 	packet << NetMessage::CL_SHOOT;
 
-	socket.send(packet);
+	socket.send(packet, serverIP, Constants::SERVER_PORT);
 }

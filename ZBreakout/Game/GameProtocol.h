@@ -85,7 +85,7 @@ class GameProtocol {
 		static void sendServerHandshake(sf::TcpSocket& socket);
 		static bool verifyServerHandshake(sf::Packet& packet);
 
-		static void sendClientHandshake(sf::TcpSocket& socket, std::string nickname);
+		static void sendClientHandshake(sf::UdpSocket& socket, sf::IpAddress& ip, std::string nickname);
 		static std::string verifyClientHandshake(sf::Packet& packet);
 
 		static void sendLevel(sf::TcpSocket& socket, std::string name);

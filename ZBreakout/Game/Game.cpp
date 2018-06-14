@@ -97,10 +97,10 @@ void Game::tick() {
 		}
 	}
 
-	if (!nospawn && spawnClock.getElapsedTime().asSeconds() > 9.0f) {
+	if (!nospawn && spawnClock.getElapsedTime().asSeconds() > 5.0f) {
 		spawnClock.restart();
 
-		for (int n = 0; n < 10; n++) spawnZombie();
+		for (int n = 0; n < 1; n++) spawnZombie();
 		nospawn = true;
 	}
 }
