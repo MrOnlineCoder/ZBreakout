@@ -18,7 +18,7 @@ Chat::Chat() {
 void Chat::init(AssetManager& asst, int x, int y) {
 	log.setFont(asst.getFont("main"));
 	log.setCharacterSize(20);
-	log.setPosition(sf::Vector2f(x, y - 50 - 5));
+	log.setPosition(sf::Vector2f(x, y - 50 - 10));
 
 	this->x = x;
 	this->y = y;

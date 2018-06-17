@@ -121,32 +121,39 @@ void PlayState::input(sf::Event ev) {
 		if (ev.key.code == sf::Keyboard::Num4) setPlayerCurrentSlot(3);
 		if (ev.key.code == sf::Keyboard::Num5) setPlayerCurrentSlot(4);
 
-		if (ev.key.code == sf::Keyboard::J) {
+		if (ev.key.code == sf::Keyboard::K) {
 			sf::Packet p;
 			p << NetMessage::CL_BUYWEAPON << Weapon::AK47;
 			socket.send(p, serverIP, Constants::SERVER_PORT);
-			return;
-		}
 
-		if (ev.key.code == sf::Keyboard::K) {
-			sf::Packet p;
+			p.clear();
+			p << NetMessage::CL_BUYWEAPON << Weapon::SHOTGUN;
+			socket.send(p, serverIP, Constants::SERVER_PORT);
+
+			p.clear();
 			p << NetMessage::CL_BUYWEAPON << Weapon::REVOLVER;
+			socket.send(p, serverIP, Constants::SERVER_PORT);
+
+			p.clear();
+			p << NetMessage::CL_BUYWEAPON << Weapon::PISTOL;
 			socket.send(p, serverIP, Constants::SERVER_PORT);
 			return;
 		}
 
 		if (ev.key.code == sf::Keyboard::L) {
 			sf::Packet p;
-			p << NetMessage::CL_BUYWEAPON << Weapon::PISTOL;
+			p << NetMessage::DBG_MOVEZOMBIES;
 			socket.send(p, serverIP, Constants::SERVER_PORT);
+			chat.addMessage(sf::Color::Yellow, "Moved all zombies");
 			return;
 		}
 
-
-		if (ev.key.code == sf::Keyboard::H) {
+		if (ev.key.code == sf::Keyboard::P) {
 			sf::Packet p;
-			p << NetMessage::CL_BUYWEAPON << Weapon::SHOTGUN;
+			p << NetMessage::DBG_SPAWNZOMBIE;
 			socket.send(p, serverIP, Constants::SERVER_PORT);
+
+			chat.addMessage(sf::Color::Yellow, "Spawned debug zombie");
 			return;
 		}
 	}
@@ -183,11 +190,19 @@ void PlayState::update() {
 	sf::Packet udpPacket;
 	sf::IpAddress ip;
 
-	if (socket.receive(udpPacket, ip, port) == sf::Socket::Status::Done) {
+	int _packet = 0;
+	int _netDataSize = 0;
+
+	while (socket.receive(udpPacket, ip, port) == sf::Socket::Status::Done) {
 		if (port == Constants::SERVER_PORT) {
+			_packet++;
+			_netDataSize += udpPacket.getDataSize();
 			processPacket(udpPacket);
 		}
 	}
+
+	if (_packet != 0) packets = _packet;
+	if (_netDataSize != 0) netDataSize = _netDataSize;
 
 	
 	//if we were identfied, so probably we are in game and everything is OK
@@ -222,8 +237,11 @@ void PlayState::update() {
 		debugStream << "FPS: " << fps.getFPS() << "\n";
 		debugStream << "Tickrate: " << Constants::GAME_TICKRATE << "\n";
 		debugStream << "Version: " << Constants::VERSION << "\n";
-		debugStream << "currentSlot: " << game.players[playerID].currentSlot << "\n";
-		debugStream << "bullets: " << game.bullets.size() << "\n";
+		debugStream << "Zombies: " << game.zombies.size() << "\n";
+		debugStream << "Bullets: " << game.bullets.size() << "\n";
+		debugStream << "Client / Server port: " << Constants::CLIENT_PORT << " / " << Constants::SERVER_PORT << "\n";
+		debugStream << "Level: " << levelName << "\n";
+		debugStream << "Packets processed: " << packets << " and " << netDataSize << " bytes\n";
 
 		debugTxt.setString(debugStream.str());
 	}
@@ -231,6 +249,10 @@ void PlayState::update() {
 
 void PlayState::loadThreadFunc() {
 	lvl.loadFromFile(ASSETS_PATH + "/levels/" + levelName + ".tmx");
+
+	status.setString("Creating pathsearch grid..");
+	Pathsearch::rasterizeGrid(lvl.getWalls(), sf::Vector2f(manager->getAssets().getTexture("zombie_idle").getSize()));
+
 	playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
 	loaded = true;
 
@@ -347,6 +369,8 @@ void PlayState::processPacket(sf::Packet & packet) {
 		
 		packet >> index;
 		packet >> zombie;
+
+		if (index >= game.zombies.size()) return;
 
 		Zombie& old = game.zombies[index];
 

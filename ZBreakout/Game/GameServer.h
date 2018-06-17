@@ -57,6 +57,8 @@ private:
 	bool running;
 	int connected;
 
+	bool dbgMoveZombies;
+
 	AssetManager& gameAssets;
 
 	Game game;

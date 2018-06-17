@@ -90,6 +90,12 @@
     <ClCompile Include="Game\Random.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\GameMath.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Pathsearch.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -168,6 +174,12 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\Random.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\GameMath.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Pathsearch.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

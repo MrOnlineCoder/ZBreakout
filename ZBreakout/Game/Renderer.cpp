@@ -119,7 +119,8 @@ void Renderer::drawZombie(Zombie & z) {
 	if (z.hp < z.getMaxHp()) {
 		zombieHp.setSize(sf::Vector2f((z.hp * ZOMBIEBAR_SIZE) / z.getMaxHp(), 10));
 		zombieHp.setOrigin(zombieHp.getGlobalBounds().width / 2, zombieHp.getGlobalBounds().height / 2);
-		zombieHp.setPosition(zombieSpr.getPosition() + sf::Vector2f(zombieSpr.getGlobalBounds().width / 2, -3));
+		zombieHp.setPosition(zombieSpr.getPosition() + sf::Vector2f(0, -(zombieSpr.getGlobalBounds().height/2)-3));
+
 		window->draw(zombieHp);
 	}
 	
@@ -151,9 +152,7 @@ void Renderer::updateItemText(Player& pl) {
 void Renderer::playDamageEffect(sf::Vector2f pos, int dmg) {
 	DamageHit hit;
 
-	sf::Vector2f tpos =pos;
-	tpos.x += zombieSpr.getGlobalBounds().width / 2;
-	tpos.y += zombieSpr.getGlobalBounds().height / 2;
+	sf::Vector2f tpos = pos;
 
 	tpos.x += Random::randomInt(-50, 50);
 	tpos.y += Random::randomInt(-50, 50);
@@ -241,6 +240,7 @@ void Renderer::setup() {
 
 	//Zombie
 	zombieSpr.setTexture(manager->getAssets().getTexture("zombie_idle"));
+	zombieSpr.setOrigin(zombieSpr.getGlobalBounds().width / 2, zombieSpr.getGlobalBounds().height / 2);
 	zombieHp.setFillColor(sf::Color::Green);
 	zombieHp.setSize(sf::Vector2f(ZOMBIEBAR_SIZE, ZOMBIEBAR_SIZE));
 }

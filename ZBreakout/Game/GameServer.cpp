@@ -11,12 +11,15 @@ Proprietary and confidential
 
 #include "GameServer.h"
 
+#include "Pathsearch.h"
+
 GameServer::GameServer(AssetManager& assets)
 : serverThread(&GameServer::loop, this),
 gameAssets(assets) {
 	udpServer.setBlocking(false);
 
 	running = false;
+	dbgMoveZombies = false;
 }
 
 bool GameServer::start() {
@@ -35,6 +38,9 @@ bool GameServer::start() {
 	
 	game.setPlayerSize(sf::Vector2f(gameAssets.getTexture("player").getSize()));
 	game.setZombieSize(sf::Vector2f(gameAssets.getTexture("zombie_idle").getSize()));
+
+	_LOG_.log("GameServer", "Setting up Pathsearch...");
+	Pathsearch::rasterizeGrid(game.level.getWalls(), sf::Vector2f(gameAssets.getTexture("zombie_idle").getSize()));
 
 	running = true;
 
@@ -80,7 +86,7 @@ void GameServer::loop() {
 		sf::IpAddress ip;
 		unsigned short port = 1;
 
-		if (udpServer.receive(packet, ip, port) == sf::Socket::Status::Done) {
+		while (udpServer.receive(packet, ip, port) == sf::Socket::Status::Done) {
 			if (port == Constants::CLIENT_PORT) {
 				bool isNewClient = true;
 
@@ -135,6 +141,8 @@ void GameServer::loop() {
 				}
 			}
 		}
+
+		if (dbgMoveZombies) game.moveZombies();
 
 		game.tick();
 
@@ -211,6 +219,17 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 		if (wpn.ammo <= 0) wpn.reloadClock.restart();
 
 		shoot(sender);
+		return;
+	}
+
+	//DEBUG MESSAGES
+	if (netmsg == NetMessage::DBG_SPAWNZOMBIE) {
+		game.addZombie(ZombieType::NORMAL, game.players[sender].pos);
+		return;
+	}
+
+	if (netmsg == NetMessage::DBG_MOVEZOMBIES) {
+		dbgMoveZombies = !dbgMoveZombies;
 		return;
 	}
 }

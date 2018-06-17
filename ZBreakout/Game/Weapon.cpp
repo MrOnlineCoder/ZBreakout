@@ -64,7 +64,7 @@ Weapon Weapon::createWeapon(std::string type) {
 	}
 
 	if (type == Weapon::REVOLVER) {
-		return Weapon(Weapon::REVOLVER, 8, 1.5f, 4, 0.0f);
+		return Weapon(Weapon::REVOLVER, 8, 1.5f, 6, 0.0f);
 	}
 
 	if (type == Weapon::AK47) {

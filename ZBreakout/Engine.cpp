@@ -37,13 +37,14 @@ int Engine::run() {
 
 	sf::Event ev;
 	while (window.isOpen()) {
+
 		while(window.pollEvent(ev)) {
 			if (ev.type == sf::Event::Closed) window.close();
 
-			stateManager.handleInput(ev);
+			if (window.hasFocus()) stateManager.handleInput(ev);
 		}
 
-		stateManager.update();
+		if (window.hasFocus()) stateManager.update();
 		assets.update();
 
 		window.clear();

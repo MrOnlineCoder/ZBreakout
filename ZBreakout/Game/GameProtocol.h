@@ -74,7 +74,11 @@ enum class NetMessage {
 	SV_ADDZOMBIE,
 	SV_MOVEZOMBIE,
 	SV_CHANGEZOMBIE,
-	SV_KILLZOMBIE
+	SV_KILLZOMBIE,
+
+	//DEBUG
+	DBG_SPAWNZOMBIE,
+	DBG_MOVEZOMBIES,
 };
 
 //signature, used in handshake

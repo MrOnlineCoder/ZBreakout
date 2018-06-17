@@ -77,4 +77,6 @@ private:
 	FPS fps;
 
 	unsigned short port;
+	int packets;
+	size_t netDataSize;
 };

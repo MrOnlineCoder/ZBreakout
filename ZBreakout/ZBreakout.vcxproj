@@ -131,9 +131,11 @@
     <ClCompile Include="GameState\StateManager.cpp" />
     <ClCompile Include="Game\Chat.cpp" />
     <ClCompile Include="Game\Game.cpp" />
+    <ClCompile Include="Game\GameMath.cpp" />
     <ClCompile Include="Game\GameProtocol.cpp" />
     <ClCompile Include="Game\GameServer.cpp" />
     <ClCompile Include="Game\Level.cpp" />
+    <ClCompile Include="Game\Pathsearch.cpp" />
     <ClCompile Include="Game\Player.cpp" />
     <ClCompile Include="Game\Renderer.cpp" />
     <ClCompile Include="Game\RichText.cpp" />
@@ -157,10 +159,12 @@
     <ClInclude Include="Game\Constants.h" />
     <ClInclude Include="Game\Effect.h" />
     <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="Game\GameMath.h" />
     <ClInclude Include="Game\GameProtocol.h" />
     <ClInclude Include="Game\GameServer.h" />
     <ClInclude Include="Game\Inventory.h" />
     <ClInclude Include="Game\Level.h" />
+    <ClInclude Include="Game\Pathsearch.h" />
     <ClInclude Include="Game\Player.h" />
     <ClInclude Include="Game\Random.h" />
     <ClInclude Include="Game\Renderer.h" />

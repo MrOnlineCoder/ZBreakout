@@ -17,6 +17,7 @@ Proprietary and confidential
 #include "../Logger.h"
 #include "Constants.h"
 #include "Effect.h"
+#include "Pathsearch.h"
 
 enum class ZombieType {
 	NORMAL
@@ -32,6 +33,7 @@ public:
 	sf::Vector2f velocity;
 	PlayerID target;
 	int hp;
+	int rotation;
 
 	bool dirty;
 	int ticksAlive;
@@ -41,9 +43,13 @@ public:
 	float getMoveSpeed();
 	bool isAlive();
 
+	void setPosition(sf::Vector2f pos);
+
 	void addEffect(EffectType type, float duration);
 
 	std::vector<Effect> effects;
+
+	PathData path;
 
 	static Zombie createZombie(ZombieType type);
 private:

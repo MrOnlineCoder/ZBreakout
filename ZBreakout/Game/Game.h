@@ -43,8 +43,11 @@ public:
 
 	void addZombie(ZombieType type, sf::Vector2f pos);
 
+	void spawnZombie();
+
 	//also used by client
 	void moveBullets();
+	void moveZombies();
 
 	std::vector<Player> players;
 	std::vector<Bullet> bullets;
@@ -63,7 +66,8 @@ private:
 	int findBulletDamageToZombie(Zombie& z);
 	//
 
-	void spawnZombie();
+	PlayerID findNearestPlayerTo(sf::Vector2f pos);
+	void updatePlayerAttackers(PlayerID id);
 
 	sf::Clock spawnClock;
 	sf::Clock gameClock;

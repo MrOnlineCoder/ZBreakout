@@ -11,9 +11,14 @@ Proprietary and confidential
 
 #include "Game.h"
 #include "Random.h"
+#include "GameMath.h"
 
 Game::Game() {
 	nospawn = false;
+
+	zombies.reserve(150);
+	players.reserve(4);
+	bullets.reserve(300);
 }
 
 void Game::setPlayerSize(sf::Vector2f arg) {
@@ -55,6 +60,24 @@ void Game::moveBullets() {
 	}
 }
 
+void Game::moveZombies() {
+	for (int i = 0; i < zombies.size(); i++) {
+		Zombie& z = zombies[i];
+
+		sf::Vector2i node = Pathsearch::searchNextNode(z.path);
+
+		if (node != sf::Vector2i(-1, -1)) {
+			sf::Vector2f npos = Pathsearch::mapNode(node);
+
+			z.setPosition(npos);
+
+			if (node == z.path.end) {
+				//z.path.closed.clear();
+			}
+		}
+	}
+}
+
 void Game::tick() {
 	for (std::vector<Player>::size_type plid = 0; plid < players.size(); plid++) {
 		Player& player = players[plid];
@@ -67,7 +90,7 @@ void Game::tick() {
 
 		player.pos += player.accel;
 		player.dirty = true;
-
+		updatePlayerAttackers(plid);
 	}
 
 	moveBullets();
@@ -88,8 +111,8 @@ void Game::tick() {
 				z.dirty = true;
 			}
 
-			z.pos.x += 1.0f;
-			z.dirty = true;
+			//z.pos.x += 1.0f;
+			//z.dirty = true;
 
 			++zi;
 		} else{
@@ -100,7 +123,7 @@ void Game::tick() {
 	if (!nospawn && spawnClock.getElapsedTime().asSeconds() > 5.0f) {
 		spawnClock.restart();
 
-		for (int n = 0; n < 1; n++) spawnZombie();
+		//for (int n = 0; n < 5; n++) spawnZombie();
 		nospawn = true;
 	}
 }
@@ -113,8 +136,10 @@ bool Game::canPlayerMove(PlayerID index) {
 }
 
 int Game::findBulletDamageToZombie(Zombie& z) {
-	zombieAABB.left = z.pos.x;
-	zombieAABB.top = z.pos.y;
+	//we pad original position, client uses setOrigin(half of width, half of height) for better rendering
+	//Renderer.cpp:line122
+	zombieAABB.left = z.pos.x - zombieAABB.width / 2;
+	zombieAABB.top = z.pos.y - zombieAABB.height / 2;
 
 	int damage = 0;
 
@@ -135,14 +160,48 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 	return damage;
 }
 
+PlayerID Game::findNearestPlayerTo(sf::Vector2f pos) {
+	PlayerID min = 0;
+
+	float dist = GameMath::distance(pos, players[0].pos);
+
+	for (int i = 0; i < players.size(); i++) {
+		sf::Vector2f ppos = players[i].pos;
+
+		float _dist = GameMath::distance(pos, ppos);
+		if (_dist < dist) {
+			dist = _dist;
+			min = i;
+		}
+	}
+
+	return min;
+}
+
+void Game::updatePlayerAttackers(PlayerID id) {
+	for (int i = 0; i < zombies.size(); i++) {
+		Zombie& z = zombies[i];
+
+		if (z.target == id) {
+			Pathsearch::initPath(&z.path, z.pos, players[z.target].pos);
+		}
+	}
+}
+
 void Game::spawnZombie() {
-	addZombie(ZombieType::NORMAL, level.getSpawners().at(Random::randomInt(0, level.getSpawners().size()-1)));
+	addZombie(ZombieType::NORMAL, level.getSpawners().at(
+		Random::randomInt(0, level.getSpawners().size()-1)) /*+ sf::Vector2f(Random::randomInt(-50, 50), Random::randomInt(-50, 50))*/
+	);
 }
 
 void Game::addZombie(ZombieType type, sf::Vector2f pos) {
 	Zombie z = Zombie::createZombie(type);
 	z.pos = pos;
+	z.target = findNearestPlayerTo(z.pos);
+
+	Pathsearch::initPath(&z.path, z.pos, players[z.target].pos);
+
 	zombies.push_back(z);
 
-	_LOG_.log("MicroslavikSpawn", "Spawned microslavik ID="+std::to_string(static_cast<int>(type))+" at position "+std::to_string(pos.x)+", "+std::to_string(pos.y));
+	_LOG_.log("MicroslavikSpawn", "Spawned microslavik ID="+std::to_string(static_cast<int>(type))+" at position "+std::to_string(pos.x)+", "+std::to_string(pos.y)+", targeted at player #"+std::to_string(z.target));
 }

@@ -20,10 +20,11 @@ const std::string CREDITS_DATA = "--- ZBreakout ---\n"
 "\n"
 "Thanks to:\n"
 "SFML Library by Laurent Gomila and SFML team\n"
-"therocode, Dbug, Rosme, Mario, eXpl0it3r, fallahn from SFML Discord"
+"therocode, Dbug, Rosme, Mario,\n"
+"eXpl0it3r, fallahn from SFML Discord"
 ""
 "\n\n\n"
-"THANKS FOR PLAYING! :D"
+"THANKS FOR PLAYING! ;)"
 ;
 
 const float CREDITS_SPEED = 70.2f;
