@@ -19,6 +19,9 @@ Game::Game() {
 	zombies.reserve(150);
 	players.reserve(4);
 	bullets.reserve(300);
+
+	delta = 1.0f;
+	shouldMoveZombies = false;
 }
 
 void Game::setPlayerSize(sf::Vector2f arg) {
@@ -62,19 +65,7 @@ void Game::moveBullets() {
 
 void Game::moveZombies() {
 	for (int i = 0; i < zombies.size(); i++) {
-		Zombie& z = zombies[i];
-
-		sf::Vector2i node = Pathsearch::searchNextNode(z.path);
-
-		if (node != sf::Vector2i(-1, -1)) {
-			sf::Vector2f npos = Pathsearch::mapNode(node);
-
-			z.setPosition(npos);
-
-			if (node == z.path.end) {
-				//z.path.closed.clear();
-			}
-		}
+		moveZombie(zombies[i]);
 	}
 }
 
@@ -111,20 +102,14 @@ void Game::tick() {
 				z.dirty = true;
 			}
 
-			//z.pos.x += 1.0f;
-			//z.dirty = true;
+			if (shouldMoveZombies) {
+				moveZombie(z);
+			}
 
 			++zi;
 		} else{
-			zi = zombies.erase(zi);
+			if (isServer) zi = zombies.erase(zi);
 		}
-	}
-
-	if (!nospawn && spawnClock.getElapsedTime().asSeconds() > 5.0f) {
-		spawnClock.restart();
-
-		//for (int n = 0; n < 5; n++) spawnZombie();
-		nospawn = true;
 	}
 }
 
@@ -160,6 +145,19 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 	return damage;
 }
 
+void Game::moveZombie(Zombie & z) {
+	if (z.path.current == z.path.end) return;
+
+	if (GameMath::distanceSquared(z.pos, z.nextStep) <= 5 * 5) {
+		sf::Vector2i node = Pathsearch::searchNextNode(z.path);
+		z.nextStep = Pathsearch::mapNode(node);
+		z.velocity = GameMath::findVelocity(z.pos, z.nextStep, z.getMoveSpeed());
+	} else {
+		z.pos += z.velocity * delta;
+		z.dirty = true;
+	}
+}
+
 PlayerID Game::findNearestPlayerTo(sf::Vector2f pos) {
 	PlayerID min = 0;
 
@@ -184,6 +182,7 @@ void Game::updatePlayerAttackers(PlayerID id) {
 
 		if (z.target == id) {
 			Pathsearch::initPath(&z.path, z.pos, players[z.target].pos);
+			z.nextStep = z.pos;
 		}
 	}
 }
@@ -198,6 +197,7 @@ void Game::addZombie(ZombieType type, sf::Vector2f pos) {
 	Zombie z = Zombie::createZombie(type);
 	z.pos = pos;
 	z.target = findNearestPlayerTo(z.pos);
+	z.nextStep = z.pos;
 
 	Pathsearch::initPath(&z.path, z.pos, players[z.target].pos);
 

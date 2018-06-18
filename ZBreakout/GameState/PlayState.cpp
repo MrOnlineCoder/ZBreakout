@@ -10,6 +10,7 @@ Proprietary and confidential
 */
 //Project includes
 #include "PlayState.h"
+#include "../Game/Random.h"
 
 PlayState::PlayState(StateManager* mgr)
 	: GameState(mgr),
@@ -40,8 +41,13 @@ PlayState::PlayState(StateManager* mgr)
 
 	debug = false;
 
+	game.setPlayerSize(sf::Vector2f(manager->getAssets().getTexture("player").getSize()));
+	game.setZombieSize(sf::Vector2f(manager->getAssets().getTexture("zombie_idle").getSize()));
+	game.isServer = false;
+
 	serverIP = sf::IpAddress("127.0.0.1");
 	port = Constants::CLIENT_PORT;
+	zombieRoarDelay = 0;
 }
 
 void PlayState::init() {
@@ -106,14 +112,26 @@ void PlayState::render(sf::RenderWindow& window) {
 	}
 
 	fps.update();
+	game.delta = manager->getDelta();
 }
 
 void PlayState::input(sf::Event ev) {
+	if (!loaded || game.players.size() == 0) return;
+
 	if (ev.type == sf::Event::KeyPressed) {
 		if (ev.key.code == sf::Keyboard::W) socket.send(GameProtocol::clientMove(sf::Vector2f(0, -1)), serverIP, Constants::SERVER_PORT);
 		if (ev.key.code == sf::Keyboard::A) socket.send(GameProtocol::clientMove(sf::Vector2f(-1, 0)), serverIP, Constants::SERVER_PORT);
 		if (ev.key.code == sf::Keyboard::S) socket.send(GameProtocol::clientMove(sf::Vector2f(0, 1)), serverIP, Constants::SERVER_PORT);
 		if (ev.key.code == sf::Keyboard::D) socket.send(GameProtocol::clientMove(sf::Vector2f(1, 0)), serverIP, Constants::SERVER_PORT);
+	}
+
+
+	if (ev.type == sf::Event::KeyReleased) {
+		if (ev.key.code == sf::Keyboard::F3) {
+			debug = !debug;
+			renderer.debug.enabled = debug;
+			return;
+		}
 
 		if (ev.key.code == sf::Keyboard::Num1) setPlayerCurrentSlot(0);
 		if (ev.key.code == sf::Keyboard::Num2) setPlayerCurrentSlot(1);
@@ -144,7 +162,10 @@ void PlayState::input(sf::Event ev) {
 			sf::Packet p;
 			p << NetMessage::DBG_MOVEZOMBIES;
 			socket.send(p, serverIP, Constants::SERVER_PORT);
-			chat.addMessage(sf::Color::Yellow, "Moved all zombies");
+
+			game.shouldMoveZombies = !game.shouldMoveZombies;
+
+			chat.addMessage(sf::Color::Yellow, "Moving zombies");
 			return;
 		}
 
@@ -154,15 +175,6 @@ void PlayState::input(sf::Event ev) {
 			socket.send(p, serverIP, Constants::SERVER_PORT);
 
 			chat.addMessage(sf::Color::Yellow, "Spawned debug zombie");
-			return;
-		}
-	}
-
-
-	if (ev.type == sf::Event::KeyReleased) {
-		if (ev.key.code == sf::Keyboard::F3) {
-			debug = !debug;
-			renderer.debug.enabled = debug;
 			return;
 		}
 
@@ -204,12 +216,22 @@ void PlayState::update() {
 	if (_packet != 0) packets = _packet;
 	if (_netDataSize != 0) netDataSize = _netDataSize;
 
+	if (game.zombies.size() > 0) {
+		if (soundClock.getElapsedTime().asMilliseconds() > zombieRoarDelay) {
+			soundClock.restart();
+
+			int sndNo = Random::randomInt(0,2);
+			manager->getAssets().playSound("zombie_roar"+std::to_string(sndNo));
+			zombieRoarDelay = Random::randomInt(3000, 7000);
+		}
+	}
 	
 	//if we were identfied, so probably we are in game and everything is OK
 	if (playerID != -1 && game.players.size() > playerID) {
 		Player& me = game.players[playerID];
-		
+
 		game.moveBullets();
+		//game.moveZombies();
 
 		if (me.isHoldingWeapon()) {
 			if (me.getWeapon().getAmmo() == 0) {
@@ -242,6 +264,7 @@ void PlayState::update() {
 		debugStream << "Client / Server port: " << Constants::CLIENT_PORT << " / " << Constants::SERVER_PORT << "\n";
 		debugStream << "Level: " << levelName << "\n";
 		debugStream << "Packets processed: " << packets << " and " << netDataSize << " bytes\n";
+		debugStream << "shouldMoveZombies: " << game.shouldMoveZombies << "\n";
 
 		debugTxt.setString(debugStream.str());
 	}
@@ -312,6 +335,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 		packet >> game.players[id];
 
 		playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
+		game.updatePlayerAttackers(id);
 
 		return;
 	}
@@ -382,7 +406,8 @@ void PlayState::processPacket(sf::Packet & packet) {
 			renderer.playDamageEffect(old.pos, dmg);
 		}
 
-		game.zombies[index] = zombie;
+		game.zombies[index].hp = zombie.hp;
+		game.zombies[index].pos = zombie.pos;
 		return;
 	}
 

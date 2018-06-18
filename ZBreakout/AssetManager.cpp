@@ -45,6 +45,9 @@ void AssetManager::loadAll() {
 	loadTexture("zombie_idle", "zombie/zombie_idle.png");
 	loadSound("zombie_death", "sounds/zombie_death.ogg");
 	loadSound("zombie_hit", "sounds/zombie_hit.ogg");
+	loadSound("zombie_roar0", "sounds/zombie_roar0.ogg");
+	loadSound("zombie_roar1", "sounds/zombie_roar1.ogg");
+	loadSound("zombie_roar2", "sounds/zombie_roar2.ogg");
 
 	loadSound("weapon_reload", "sounds/reload.ogg");
 }

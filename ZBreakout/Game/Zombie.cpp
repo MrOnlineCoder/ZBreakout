@@ -20,6 +20,7 @@ Zombie::Zombie(ZombieType _type, float _attackSpeed, float _moveSpeed, int _maxh
 	this->dirty = false;
 	this->ticksAlive = 0;
 	this->rotation = 0;
+	this->moveFactor = 1.0f;
 }
 
 ZombieType Zombie::getType() {
@@ -56,7 +57,7 @@ void Zombie::addEffect(EffectType type, float duration) {
 
 Zombie Zombie::createZombie(ZombieType type) {
 	if (type == ZombieType::NORMAL) {
-		return Zombie(type, 0.5f, 15.0f, 25);
+		return Zombie(type, 0.5f, 100.0f, 20);
 	}
 
 	return Zombie(type, 0.1f, 0.1f, 1);

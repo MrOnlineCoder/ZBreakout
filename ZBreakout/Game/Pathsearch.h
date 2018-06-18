@@ -30,7 +30,7 @@ struct PathNeighbour {
 	int cost;
 };
 
-struct PathData {
+struct PathData { 
 	sf::Vector2i start;
 	sf::Vector2i end;
 	sf::Vector2i current;

@@ -15,8 +15,12 @@ Proprietary and confidential
 #include <SFML/System/Vector2.hpp>
 
 namespace GameMath {
-	float distance(sf::Vector2f a, sf::Vector2f b);
-	float distance(sf::Vector2i a, sf::Vector2i b);
+	float distance(sf::Vector2f& a, sf::Vector2f& b);
+	float distance(sf::Vector2i& a, sf::Vector2i& b);
+	float distanceSquared(sf::Vector2f& a, sf::Vector2f& b);
+
+	sf::Vector2f interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor);
+	sf::Vector2f findVelocity(sf::Vector2f& start, sf::Vector2f& end, float speed);
 };
 
 #endif

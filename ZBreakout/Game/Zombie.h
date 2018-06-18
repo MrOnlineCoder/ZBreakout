@@ -35,6 +35,9 @@ public:
 	int hp;
 	int rotation;
 
+	float moveFactor;
+	sf::Vector2f nextStep;
+
 	bool dirty;
 	int ticksAlive;
 

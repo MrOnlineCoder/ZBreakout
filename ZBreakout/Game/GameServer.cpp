@@ -36,6 +36,7 @@ bool GameServer::start() {
 
 	game.level.loadFromFile("Assets/levels/" + Constants::LEVEL + ".tmx");
 	
+	game.isServer = true;
 	game.setPlayerSize(sf::Vector2f(gameAssets.getTexture("player").getSize()));
 	game.setZombieSize(sf::Vector2f(gameAssets.getTexture("zombie_idle").getSize()));
 
@@ -142,13 +143,12 @@ void GameServer::loop() {
 			}
 		}
 
-		if (dbgMoveZombies) game.moveZombies();
-
 		game.tick();
 
 		sendGameDelta();
 
 		sf::sleep(sf::milliseconds(1000 / Constants::GAME_TICKRATE));
+		game.delta = deltaClock.restart().asSeconds();
 	}
 }
 
@@ -229,7 +229,7 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 	}
 
 	if (netmsg == NetMessage::DBG_MOVEZOMBIES) {
-		dbgMoveZombies = !dbgMoveZombies;
+		game.shouldMoveZombies = !game.shouldMoveZombies;
 		return;
 	}
 }

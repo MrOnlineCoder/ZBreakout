@@ -69,6 +69,9 @@ private:
 
 	sf::Clock clock;
 
+	sf::Clock soundClock;
+	long zombieRoarDelay;
+
 	sf::IpAddress serverIP;
 
 	bool debug;

@@ -45,6 +45,8 @@ public:
 
 	void spawnZombie();
 
+	void updatePlayerAttackers(PlayerID id);
+
 	//also used by client
 	void moveBullets();
 	void moveZombies();
@@ -56,6 +58,11 @@ public:
 	void tick();
 
 	Level level;
+
+	float delta;
+	bool isServer;
+
+	bool shouldMoveZombies;
 private:
 	//used for collision detection
 	sf::Vector2f playerSize;
@@ -66,8 +73,9 @@ private:
 	int findBulletDamageToZombie(Zombie& z);
 	//
 
+	void moveZombie(Zombie& z);
+
 	PlayerID findNearestPlayerTo(sf::Vector2f pos);
-	void updatePlayerAttackers(PlayerID id);
 
 	sf::Clock spawnClock;
 	sf::Clock gameClock;

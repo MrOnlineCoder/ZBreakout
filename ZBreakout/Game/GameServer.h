@@ -64,6 +64,7 @@ private:
 	Game game;
 
 	sf::Clock clock;
+	sf::Clock deltaClock;
 
 	sf::Thread serverThread;
 	sf::UdpSocket udpServer;

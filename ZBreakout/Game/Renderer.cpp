@@ -116,6 +116,11 @@ void Renderer::drawDebug() {
 void Renderer::drawZombie(Zombie & z) {
 	zombieSpr.setPosition(z.pos);
 
+	float angle = std::atan2(z.pos.y - plSpr.getPosition().y, z.pos.x - plSpr.getPosition().x);
+	angle = 180 + angle * 180 / 3.1415;
+
+	zombieSpr.setRotation(angle);
+
 	if (z.hp < z.getMaxHp()) {
 		zombieHp.setSize(sf::Vector2f((z.hp * ZOMBIEBAR_SIZE) / z.getMaxHp(), 10));
 		zombieHp.setOrigin(zombieHp.getGlobalBounds().width / 2, zombieHp.getGlobalBounds().height / 2);
