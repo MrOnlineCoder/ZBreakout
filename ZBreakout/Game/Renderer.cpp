@@ -89,6 +89,16 @@ void Renderer::drawPlayerHPBar(Player & pl) {
 
 void Renderer::drawInventory(Player & pl) {
 	window->draw(wpnText);
+
+	window->draw(goldShape);
+
+	goldText.clear();
+	goldText << sf::Text::Bold << sf::Color::White << "Gold: " << sf::Color(199, 133, 39) << std::to_string(pl.gold);
+	goldText.setPosition(
+		goldShape.getPosition().x + goldShape.getGlobalBounds().width / 2 - goldText.getGlobalBounds().width /2,
+		goldShape.getPosition().y + goldShape.getGlobalBounds().height / 2 - goldText.getGlobalBounds().height / 2);
+
+	window->draw(goldText);
 }
 
 void Renderer::drawBullet(Bullet& b) {
@@ -144,7 +154,7 @@ void Renderer::updateItemText(Player& pl) {
 			float reloadTimeLeft = wpn.getReloadTime() - wpn.reloadClock.getElapsedTime().asSeconds();
 			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] Reloading... (" << sf::Color::Yellow << roundNumber(reloadTimeLeft) << " s.)";
 		} else {
-			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] " << sf::Color(153,153,153) << std::to_string(wpn.getAmmo()) << " / " + std::to_string(wpn.getMaxAmmo());
+			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] " << sf::Color(153,153,153) << std::to_string(wpn.getAmmo()) << sf::Text::Bold << " | " << sf::Text::Regular <<  std::to_string(wpn.getMaxAmmo());
 		}
 
 		
@@ -218,8 +228,21 @@ void Renderer::setup() {
 		hpBar.getGlobalBounds().height + HPBAR_OUTLINE));
 	
 	//items and inventory
-	wpnText.setCharacterSize(24);
+	wpnText.setCharacterSize(28);
 	wpnText.setFont(manager->getAssets().getFont("main"));
+
+	//gold
+	goldShape.setFillColor(sf::Color(29, 26, 19, 200));
+	goldShape.setOutlineColor(sf::Color(128, 0, 0, 255));
+	goldShape.setOutlineThickness(1.0f);
+	goldShape.setCornersRadius(5.0f);
+	goldShape.setCornerPointCount(10);
+	goldShape.setSize(sf::Vector2f(HPBAR_SIZE, 50));
+	goldShape.setPosition(window->getSize().x - goldShape.getGlobalBounds().width - 15,hpBarOut.getPosition().y + hpBarOut.getGlobalBounds().height + 15);
+
+	goldText.setFont(manager->getAssets().getFont("main"));
+	goldText.setPosition(goldShape.getPosition() + sf::Vector2f(5,5));
+	goldText.setCharacterSize(24);
 
 	//bullets
 	bulletShape.setFillColor(sf::Color::Yellow);

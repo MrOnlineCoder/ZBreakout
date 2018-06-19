@@ -21,7 +21,7 @@ Proprietary and confidential
 #include "../AssetManager.h"
 #include "RichText.h"
 
-const int CHAT_MAX_MESSAGES = 5;
+const int CHAT_MAX_MESSAGES = 8;
 
 struct ChatMessage {
 	std::string content;

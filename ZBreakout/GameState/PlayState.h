@@ -60,6 +60,8 @@ private:
 	void setPlayerCurrentSlot(int slot);
 	void shoot();
 
+	void handlePlayerChange(sf::Packet& p);
+
 	sf::Text status;
 	bool loaded;
 

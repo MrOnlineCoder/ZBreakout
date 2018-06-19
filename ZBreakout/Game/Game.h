@@ -12,14 +12,29 @@ Proprietary and confidential
 #ifndef GAME_H
 #define GAME_H
 
+#include <queue>
+
 #include <SFML/Network.hpp>
 
 #include "../Logger.h"
 #include "Constants.h"
 
+
 #include "Player.h"
 #include "Level.h"
 #include "Zombie.h"
+
+enum class GameEventType {
+	AddGold
+};
+
+struct GameEvent {
+	GameEventType type;
+	union {
+		int goldGiven;
+	};
+	PlayerID player;
+};
 
 /*
 	Game class
@@ -63,6 +78,8 @@ public:
 	bool isServer;
 
 	bool shouldMoveZombies;
+
+	std::queue<GameEvent> eventQueue;
 private:
 	//used for collision detection
 	sf::Vector2f playerSize;
@@ -76,6 +93,8 @@ private:
 	void moveZombie(Zombie& z);
 
 	PlayerID findNearestPlayerTo(sf::Vector2f pos);
+
+	int getZombieReward(Zombie& z, Player& pl);
 
 	sf::Clock spawnClock;
 	sf::Clock gameClock;

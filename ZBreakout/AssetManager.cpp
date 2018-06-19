@@ -20,7 +20,7 @@ AssetManager::AssetManager() {
 
 void AssetManager::loadAll() {
 	//fonts
-	loadFontFromFile("main", "fonts/OpenSans-Regular.ttf");
+	loadFontFromFile("main", "fonts/Roboto-Regular.ttf");
 
 	//music
 	addMusic("menu", "music/Crypto.ogg");

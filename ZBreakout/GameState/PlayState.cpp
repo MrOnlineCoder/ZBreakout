@@ -329,13 +329,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 	}
 
 	if (netmsg == NetMessage::SV_PLAYERCHANGE) {
-		int id;
-
-		packet >> id;
-		packet >> game.players[id];
-
-		playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
-		game.updatePlayerAttackers(id);
+		handlePlayerChange(packet);
 
 		return;
 	}
@@ -421,6 +415,16 @@ void PlayState::processPacket(sf::Packet & packet) {
 		game.zombies.erase(game.zombies.begin() + index);
 		return;
 	}
+
+	if (netmsg == NetMessage::SV_GOLD) {
+		int amount;
+		packet >> amount;
+
+		chat.addMessage(sf::Color(255, 193, 7), "+"+std::to_string(amount)+" Gold");
+
+		game.players[playerID].gold += amount;
+		return;
+	}
 }
 
 void PlayState::setPlayerCurrentSlot(int slot) {
@@ -449,4 +453,14 @@ void PlayState::shoot() {
 	packet << NetMessage::CL_SHOOT;
 
 	socket.send(packet, serverIP, Constants::SERVER_PORT);
+}
+
+void PlayState::handlePlayerChange(sf::Packet& p) {
+	int id;
+
+	p >> id;
+	p >> game.players[id];
+
+	playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
+	game.updatePlayerAttackers(id);
 }

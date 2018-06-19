@@ -96,6 +96,9 @@
     <ClCompile Include="Game\Pathsearch.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="GUI\RoundedShape.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -181,6 +184,9 @@
     </ClInclude>
     <ClInclude Include="Game\Pathsearch.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\RoundedShape.hpp">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

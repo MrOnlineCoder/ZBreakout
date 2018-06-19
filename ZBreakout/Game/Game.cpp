@@ -100,6 +100,7 @@ void Game::tick() {
 
 				z.hp -= possibleDmg;
 				z.dirty = true;
+
 			}
 
 			if (shouldMoveZombies) {
@@ -128,7 +129,6 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 
 	int damage = 0;
 
-
 	std::vector<Bullet>::iterator bi = bullets.begin();
 	while (bi != bullets.end()) {
 
@@ -136,11 +136,19 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 		if (zombieAABB.contains(b.pos)) {
 			damage += b.damage;
 			bi = bullets.erase(bi);
+
+			//reward player who shot this zombie
+			GameEvent evt;
+			evt.type = GameEventType::AddGold;
+			evt.goldGiven = getZombieReward(z, players[b.shooter]);
+			evt.player = b.shooter;
+			eventQueue.push(evt);
 		}
 		else {
 			++bi;
 		}
 	}
+
 
 	return damage;
 }
@@ -174,6 +182,28 @@ PlayerID Game::findNearestPlayerTo(sf::Vector2f pos) {
 	}
 
 	return min;
+}
+
+int Game::getZombieReward(Zombie & z, Player & pl) {
+	int reward = 0;
+
+	if (pl.getWeapon().getType() == Weapon::SHOTGUN) {
+		reward = 2;
+	}
+
+	if (pl.getWeapon().getType() == Weapon::AK47) {
+		reward = 5;
+	}
+
+	if (pl.getWeapon().getType() == Weapon::PISTOL) {
+		reward = 5;
+	}
+
+	if (pl.getWeapon().getType() == Weapon::REVOLVER) {
+		reward = 2;
+	}
+
+	return reward;
 }
 
 void Game::updatePlayerAttackers(PlayerID id) {

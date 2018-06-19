@@ -281,6 +281,18 @@ void GameServer::sendGameDelta() {
 
 		zm.ticksAlive++;
 	}
+
+	while (!game.eventQueue.empty()) {
+		GameEvent evt = game.eventQueue.front();
+
+		if (evt.type == GameEventType::AddGold) {
+			sf::Packet packet;
+			packet << NetMessage::SV_GOLD << evt.goldGiven;
+			udpServer.send(packet, clients[evt.player], Constants::CLIENT_PORT);
+		}
+
+		game.eventQueue.pop();
+	}
 }
 
 void GameServer::givePlayerWeapon(PlayerID id, std::string type) {

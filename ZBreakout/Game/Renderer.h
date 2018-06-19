@@ -24,6 +24,8 @@ Proprietary and confidential
 
 #include "RichText.h"
 
+#include "../GUI/RoundedShape.hpp"
+
 const int HPBAR_SIZE = 250;
 const int HPBAR_HEIGHT = 20;
 const float HPBAR_OUTLINE = 3.0f;
@@ -90,6 +92,10 @@ class Renderer {
 
 		//Items and inventory
 		sfe::RichText wpnText; //weapon title
+
+		//gold
+		sf::RoundedRectangleShape goldShape;
+		sfe::RichText goldText;
 
 		//Bullets
 		sf::CircleShape bulletShape;

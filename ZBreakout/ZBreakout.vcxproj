@@ -142,6 +142,7 @@
     <ClCompile Include="Game\Weapon.cpp" />
     <ClCompile Include="Game\Zombie.cpp" />
     <ClCompile Include="GUI\FPS.cpp" />
+    <ClCompile Include="GUI\RoundedShape.cpp" />
     <ClCompile Include="GUI\TextButton.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Game\Weapon.h" />
     <ClInclude Include="Game\Zombie.h" />
     <ClInclude Include="GUI\FPS.h" />
+    <ClInclude Include="GUI\RoundedShape.hpp" />
     <ClInclude Include="GUI\TextButton.h" />
     <ClInclude Include="Logger.h" />
   </ItemGroup>
