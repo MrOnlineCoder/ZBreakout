@@ -17,13 +17,15 @@ Proprietary and confidential
 
 std::stringstream roundingStream;
 
-Renderer::Renderer() {
+Renderer::Renderer(){
 	Random::init();
+
+	player = NULL;
 }
 
 std::string roundNumber(float num) {
 	roundingStream.str("");
-	roundingStream << std::fixed << std::setprecision(1) << num;
+	roundingStream << std::fixed << std::setprecision(2) << num;
 	return roundingStream.str();
 }
 
@@ -40,6 +42,14 @@ void Renderer::init(StateManager & mgr){
 
 void Renderer::setLevel(tmx::Map & map) {
 	levelTiles.loadFromMap(map, 0);
+}
+
+void Renderer::setDoors(std::vector<Door>& d) {
+	doors = &d;
+}
+
+void Renderer::setPlayer(Player & pl) {
+	player = &pl;
 }
 
 void Renderer::drawPlayer(Player & pl) {
@@ -76,13 +86,13 @@ void Renderer::drawPlayer(Player & pl) {
 }
 
 void Renderer::drawPlayerHPBar(Player & pl) {
-	if (pl.hp < (Constants::MAX_PLAYER_HP * 0.20)) {
+	if (player->hp < (Constants::MAX_PLAYER_HP * 0.20)) {
 		hpBar.setFillColor(sf::Color::Red);
 	} else {
 		hpBar.setFillColor(sf::Color(113, 219, 94));
 	}
 
-	hpBar.setSize(sf::Vector2f((pl.hp * HPBAR_SIZE) / Constants::MAX_PLAYER_HP, HPBAR_HEIGHT));
+	hpBar.setSize(sf::Vector2f((player->hp * HPBAR_SIZE) / Constants::MAX_PLAYER_HP, HPBAR_HEIGHT));
 	window->draw(hpBar);
 	window->draw(hpBarOut);
 }
@@ -93,7 +103,7 @@ void Renderer::drawInventory(Player & pl) {
 	window->draw(goldShape);
 
 	goldText.clear();
-	goldText << sf::Text::Bold << sf::Color::White << "Gold: " << sf::Color(199, 133, 39) << std::to_string(pl.gold);
+	goldText << sf::Text::Bold << sf::Color::White << "Gold: " << sf::Color(199, 133, 39) << std::to_string(player->gold);
 	goldText.setPosition(
 		goldShape.getPosition().x + goldShape.getGlobalBounds().width / 2 - goldText.getGlobalBounds().width /2,
 		goldShape.getPosition().y + goldShape.getGlobalBounds().height / 2 - goldText.getGlobalBounds().height / 2);
@@ -126,7 +136,7 @@ void Renderer::drawDebug() {
 void Renderer::drawZombie(Zombie & z) {
 	zombieSpr.setPosition(z.pos);
 
-	float angle = std::atan2(z.pos.y - plSpr.getPosition().y, z.pos.x - plSpr.getPosition().x);
+	float angle = std::atan2(z.pos.y - player->pos.y, z.pos.x - player->pos.x);
 	angle = 180 + angle * 180 / 3.1415;
 
 	zombieSpr.setRotation(angle);
@@ -142,6 +152,31 @@ void Renderer::drawZombie(Zombie & z) {
 	window->draw(zombieSpr);
 }
 
+void Renderer::drawDoors() {
+	for (auto i = 0; i < doors->size(); i++) {
+		Door& door = doors->at(i);
+
+		doorTxt.setString(door.name);
+		doorTxt.setPosition(door.bounds.left + door.bounds.width/2 - doorTxt.getGlobalBounds().width/2, 
+			door.bounds.top - doorTxt.getGlobalBounds().height - 15);
+		window->draw(doorTxt);
+	}
+}
+
+void Renderer::drawPossibleActions() {
+	//doors open
+	for (auto i = 0; i < doors->size(); i++) {
+		Door& door = doors->at(i);
+
+		float dist = GameMath::distance(player->pos, sf::Vector2f(door.bounds.left + door.bounds.width / 2, door.bounds.top + door.bounds.height / 2));
+
+		if (dist < 100) {
+			setActionText("G", "Open door " + door.name + " (" + std::to_string(door.price) + " gold)");
+			drawActionText();
+		}
+	}
+}
+
 void Renderer::updateItemText(Player& pl) {
 	wpnText.clear();
 
@@ -152,7 +187,7 @@ void Renderer::updateItemText(Player& pl) {
 
 		if (wpn.getAmmo() == 0) {
 			float reloadTimeLeft = wpn.getReloadTime() - wpn.reloadClock.getElapsedTime().asSeconds();
-			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] Reloading... (" << sf::Color::Yellow << roundNumber(reloadTimeLeft) << " s.)";
+			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] Reloading... (" << sf::Color::Yellow << roundNumber(reloadTimeLeft) << " s." << sf::Color::White << ")";
 		} else {
 			wpnText << sf::Color::White << "[ " << sf::Text::Bold << Weapon::getWeaponName(wpn.getType()) << sf::Text::Regular << " ] " << sf::Color(153,153,153) << std::to_string(wpn.getAmmo()) << sf::Text::Bold << " | " << sf::Text::Regular <<  std::to_string(wpn.getMaxAmmo());
 		}
@@ -248,14 +283,27 @@ void Renderer::setup() {
 	bulletShape.setFillColor(sf::Color::Yellow);
 	bulletShape.setRadius(BULLET_RADIUS);
 
-	hitTxt.setFont(manager->getAssets().getFont("main"));
+	resetText(hitTxt);
 	hitTxt.setFillColor(sf::Color::Yellow);
-	hitTxt.setOutlineThickness(0.55f);
 	hitTxt.setOutlineColor(sf::Color::White);
-	hitTxt.setCharacterSize(20);
-	hitTxt.setStyle(sf::Text::Bold);
 
+	//doors
+	resetText(doorTxt);
 
+	//center action
+	resetText(centerTxt);
+	resetText(centerKey);
+
+	centerKey.setFillColor(sf::Color::Black);
+	centerKey.setCharacterSize(32.0f);
+	centerKey.setOutlineThickness(0.0f);
+
+	centerShape.setFillColor(sf::Color::White);
+	centerShape.setOutlineThickness(.75f);
+	centerShape.setOutlineColor(sf::Color::Black);
+	centerShape.setSize(sf::Vector2f(50.0f, 50.0f));
+	centerShape.setCornersRadius(5.0f);
+	centerShape.setCornerPointCount(30);
 
 	//debug
 	wallRect.setFillColor(sf::Color::White);
@@ -271,4 +319,40 @@ void Renderer::setup() {
 	zombieSpr.setOrigin(zombieSpr.getGlobalBounds().width / 2, zombieSpr.getGlobalBounds().height / 2);
 	zombieHp.setFillColor(sf::Color::Green);
 	zombieHp.setSize(sf::Vector2f(ZOMBIEBAR_SIZE, ZOMBIEBAR_SIZE));
+}
+
+void Renderer::resetText(sf::Text & txt) {
+	txt.setFont(manager->getAssets().getFont("main"));
+	txt.setFillColor(sf::Color::White);
+	txt.setOutlineThickness(0.55f);
+	txt.setOutlineColor(sf::Color::Black);
+	txt.setCharacterSize(20);
+	txt.setStyle(sf::Text::Bold);
+}
+
+void Renderer::setActionText(std::string key, std::string text) {
+	centerTxt.setString(text);
+	centerTxt.setPosition(window->getSize().x / 2 - centerTxt.getGlobalBounds().width/2,
+		window->getSize().y - ITEMTEXT_PADDING *2 - centerTxt.getGlobalBounds().height);
+
+	centerShape.setPosition(
+		centerTxt.getPosition().x - 30 - centerShape.getGlobalBounds().width,
+		centerTxt.getPosition().y - centerShape.getGlobalBounds().height/2 + centerTxt.getGlobalBounds().height/2
+	);
+	centerKey.setString(key);
+	/*centerKey.setPosition(
+		centerShape.getPosition().x + centerShape.getGlobalBounds().width / 2 - centerKey.getGlobalBounds().width / 2,
+		centerShape.getPosition().y + centerShape.getGlobalBounds().height / 2 - centerKey.getGlobalBounds().height / 2
+	);*/
+
+	centerKey.setPosition(
+		centerShape.getPosition().x + centerShape.getGlobalBounds().width / 2 - (centerKey.getGlobalBounds().width / 4) * 3,
+		centerShape.getPosition().y + centerShape.getGlobalBounds().height / 2 - (centerKey.getGlobalBounds().height / 4) * 3.5
+	);
+}
+
+void Renderer::drawActionText() {
+	window->draw(centerTxt);
+	window->draw(centerShape);
+	window->draw(centerKey);
 }

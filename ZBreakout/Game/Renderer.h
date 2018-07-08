@@ -26,6 +26,8 @@ Proprietary and confidential
 
 #include "../GUI/RoundedShape.hpp"
 
+#include "GameMath.h"
+
 const int HPBAR_SIZE = 250;
 const int HPBAR_HEIGHT = 20;
 const float HPBAR_OUTLINE = 3.0f;
@@ -55,6 +57,8 @@ class Renderer {
 		void init(StateManager& mgr);
 
 		void setLevel(tmx::Map& map);
+		void setDoors(std::vector<Door>& d);
+		void setPlayer(Player& pl);
 
 		void drawPlayer(Player& pl);
 		void drawPlayerHPBar(Player& pl);
@@ -63,6 +67,8 @@ class Renderer {
 		void drawLevel();
 		void drawDebug();
 		void drawZombie(Zombie& z);
+		void drawDoors();
+		void drawPossibleActions();
 
 		void updateItemText(Player& pl);
 		
@@ -76,8 +82,15 @@ class Renderer {
 	private:
 		void setup();
 
+		void resetText(sf::Text& txt);
+
+		void setActionText(std::string key, std::string text);
+		void drawActionText();
+
 		sf::RenderWindow* window;
 		StateManager* manager;
+
+		Player* player;
 		
 		//Level
 		MapLayer levelTiles;
@@ -105,6 +118,15 @@ class Renderer {
 		//Zombies
 		sf::Sprite zombieSpr;
 		sf::RectangleShape zombieHp;
+
+		//doors
+		sf::Text doorTxt;
+		std::vector<Door>* doors;
+
+		//center action
+		sf::Text centerTxt;
+		sf::Text centerKey;
+		sf::RoundedRectangleShape centerShape;
 
 		//debug
 		sf::RectangleShape wallRect;

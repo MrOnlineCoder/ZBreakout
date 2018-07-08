@@ -78,6 +78,9 @@ enum class NetMessage {
 
 	SV_GOLD,
 
+	CL_PING,
+	SV_PONG,
+
 	//DEBUG
 	DBG_SPAWNZOMBIE,
 	DBG_MOVEZOMBIES,

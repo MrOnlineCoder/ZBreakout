@@ -15,6 +15,7 @@ Proprietary and confidential
 #include <SFML/Graphics.hpp>
 
 #include "../Logger.h"
+#include "Door.h"
 
 #include <tmxlite/Map.hpp>
 #include <iostream>
@@ -22,6 +23,7 @@ Proprietary and confidential
 const static std::string LVL_START_NAME = "level_start";
 const static std::string LVL_WALL = "wall";
 const static std::string LVL_SPAWNER = "spawner";
+const static std::string LVL_DOOR = "door";
 
 class Level {
 public:
@@ -34,9 +36,13 @@ public:
 	const sf::Vector2f& getStartPosition();
 	std::vector<sf::FloatRect>& getWalls();
 	std::vector<sf::Vector2f>& getSpawners();
+	std::vector<Door>& getDoors();
+
 	tmx::Map& getTMXMap();
 private:
 	void parseObject(const tmx::Object& obj);
+
+	void addDoorsAsWalls();
 
 	sf::Vector2f startPos;
 
@@ -44,6 +50,7 @@ private:
 
 	std::vector<sf::FloatRect> walls;
 	std::vector<sf::Vector2f> spawners;
+	std::vector<Door> doors;
 };
 
 #endif

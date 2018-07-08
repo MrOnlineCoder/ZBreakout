@@ -64,6 +64,7 @@ private:
 
 	sf::Text status;
 	bool loaded;
+	bool serverUp;
 
 	int playerID;
 
@@ -80,6 +81,10 @@ private:
 	sf::Text debugTxt;
 	std::stringstream debugStream;
 	FPS fps;
+
+	int ping;
+	sf::Clock pingClock;
+	sf::Clock pingTime;
 
 	unsigned short port;
 	int packets;

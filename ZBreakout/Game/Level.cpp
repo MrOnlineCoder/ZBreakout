@@ -12,7 +12,9 @@ Proprietary and confidential
 #include "Level.h"
 
 Level::Level() {
-
+	spawners.reserve(32);
+	walls.reserve(256);
+	doors.reserve(16);
 }
 
 bool Level::loadFromFile(std::string path) {
@@ -34,6 +36,7 @@ bool Level::loadFromFile(std::string path) {
 		}
 	}
 
+	addDoorsAsWalls();
 
 	_LOG_.log("Level", "Loaded level "+path);
 	return true;
@@ -60,6 +63,10 @@ std::vector<sf::FloatRect>& Level::getWalls() {
 
 std::vector<sf::Vector2f>& Level::getSpawners() {
 	return spawners;
+}
+
+std::vector<Door>& Level::getDoors() {
+	return doors;
 }
 
 tmx::Map & Level::getTMXMap() {
@@ -95,4 +102,30 @@ void Level::parseObject(const tmx::Object & obj) {
 		_LOG_.log("Level", "Found object Spawner: " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
 		return;
 	}
+
+	if (obj.getType() == LVL_DOOR) {
+		sf::FloatRect rect;
+		rect.left = obj.getAABB().left;
+		rect.top = obj.getAABB().top;
+		rect.width = obj.getAABB().width;
+		rect.height = obj.getAABB().height;
+
+		Door door;
+		door.bounds = rect;
+		door.name = obj.getName();
+		door.price = obj.getProperties()[0].getIntValue();
+		doors.push_back(door);
+
+		_LOG_.log("Level", "Found object Door: " + std::to_string(door.bounds.left) + ", " + std::to_string(door.bounds.top) + ", name= "+obj.getName());
+		return;
+	}
+}
+
+void Level::addDoorsAsWalls() {
+	for (auto i = 0; i < doors.size(); i++) {
+		walls.push_back(doors[i].bounds);
+		doors[i].index = walls.size() - 1;
+	}
+
+	_LOG_.log("Level", "Added additional "+std::to_string(doors.size())+" doors to solids list.");
 }

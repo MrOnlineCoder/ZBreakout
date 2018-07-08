@@ -54,7 +54,6 @@ void MenuState::input(sf::Event ev) {
 	}
 
 	if (playBtn.process(ev)) {
-		manager->getServer().start();
 		manager->setState(GameStates::GAME);
 		return;
 	}

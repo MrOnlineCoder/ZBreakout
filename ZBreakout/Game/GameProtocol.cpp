@@ -97,11 +97,11 @@ void GameProtocol::sendPacket(sf::TcpSocket & socket, sf::Packet & packet) {
 
 
 sf::Packet& operator <<(sf::Packet& packet, const NetMessage& msg) {
-	return packet << static_cast<int>(msg);
+	return packet << static_cast<sf::Uint8>(msg);
 }
 
 sf::Packet& operator >>(sf::Packet& packet, NetMessage& msg) {
-	int m;
+	sf::Uint8 m;
 	packet >> m;
 	msg = static_cast<NetMessage>(m);
 	return packet;

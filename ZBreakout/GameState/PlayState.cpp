@@ -12,6 +12,8 @@ Proprietary and confidential
 #include "PlayState.h"
 #include "../Game/Random.h"
 
+#include <WinSock2.h>
+
 PlayState::PlayState(StateManager* mgr)
 	: GameState(mgr),
 	lvlLoadThread(&PlayState::loadThreadFunc, this) {
@@ -40,6 +42,7 @@ PlayState::PlayState(StateManager* mgr)
 	debugTxt.setFillColor(sf::Color::White);
 
 	debug = false;
+	serverUp = false;
 
 	game.setPlayerSize(sf::Vector2f(manager->getAssets().getTexture("player").getSize()));
 	game.setZombieSize(sf::Vector2f(manager->getAssets().getTexture("zombie_idle").getSize()));
@@ -48,20 +51,16 @@ PlayState::PlayState(StateManager* mgr)
 	serverIP = sf::IpAddress("127.0.0.1");
 	port = Constants::CLIENT_PORT;
 	zombieRoarDelay = 0;
+	ping = 0;
 }
 
 void PlayState::init() {
 	loaded = false;
 	debug = false;
-
-	if (socket.bind(Constants::CLIENT_PORT) == sf::Socket::Done) {
-		status.setString("UDP socket created, sending handshake...");
-
-		sf::Packet packet;
-		packet << NetMessage::CL_HANDSHAKE << "MrOnlineCoder" << Constants::VERSION;
-		socket.send(packet, serverIP, Constants::SERVER_PORT);
-	}
+	serverUp = false;
 	
+	lvlLoadThread.launch();
+
 	_LOG_.log("PlayState", "Ready.");
 }
 
@@ -70,6 +69,7 @@ void PlayState::render(sf::RenderWindow& window) {
 		window.draw(status);
 		return;
 	}
+
 	window.clear(sf::Color(0, 100, 0));
 	
 	window.setView(playerView);
@@ -95,6 +95,7 @@ void PlayState::render(sf::RenderWindow& window) {
 	}
 
 	renderer.renderDamageHits();
+	renderer.drawDoors();
 
 	window.setView(guiView);
 	
@@ -102,6 +103,7 @@ void PlayState::render(sf::RenderWindow& window) {
 
 	renderer.drawPlayerHPBar(game.players[playerID]);
 	renderer.drawInventory(game.players[playerID]);
+	renderer.drawPossibleActions();
 
 	if (debug) {
 		window.setView(playerView);
@@ -199,6 +201,8 @@ void PlayState::input(sf::Event ev) {
 void PlayState::update() {
 	clock.restart();
 
+	if (!serverUp) return;
+
 	sf::Packet udpPacket;
 	sf::IpAddress ip;
 
@@ -261,26 +265,62 @@ void PlayState::update() {
 		debugStream << "Version: " << Constants::VERSION << "\n";
 		debugStream << "Zombies: " << game.zombies.size() << "\n";
 		debugStream << "Bullets: " << game.bullets.size() << "\n";
-		debugStream << "Client / Server port: " << Constants::CLIENT_PORT << " / " << Constants::SERVER_PORT << "\n";
 		debugStream << "Level: " << levelName << "\n";
 		debugStream << "Packets processed: " << packets << " and " << netDataSize << " bytes\n";
-		debugStream << "shouldMoveZombies: " << game.shouldMoveZombies << "\n";
+		debugStream << "Ping: " << ping << "\n";
 
 		debugTxt.setString(debugStream.str());
+	}
+
+	if (pingClock.getElapsedTime().asSeconds() > 1.0f) {
+		pingClock.restart();
+		pingTime.restart();
+
+		sf::Packet pingPacket;
+		pingPacket << NetMessage::CL_PING;
+
+		socket.send(pingPacket, serverIP, Constants::SERVER_PORT);
 	}
 }
 
 void PlayState::loadThreadFunc() {
+	if (!serverUp) {
+		status.setString("Starting local server...");
+		manager->getServer().start();
+
+		status.setString("Connecting to server...");
+
+		socket.setBlocking(true);
+
+		sf::Socket::Status connectStatus = socket.bind(Constants::CLIENT_PORT);
+		if (connectStatus == sf::Socket::Done) {
+			socket.setBlocking(false);
+
+			status.setString("UDP socket created, sending handshake...");
+			_LOG_.log("PlayState", "Bound UDP socket.");
+
+			sf::Packet packet;
+			packet << NetMessage::CL_HANDSHAKE << "MrOnlineCoder" << Constants::VERSION;
+			socket.send(packet, serverIP, Constants::SERVER_PORT);
+		}
+
+		serverUp = true;
+		lvlLoadThread.terminate();
+		return;
+	}
+
 	lvl.loadFromFile(ASSETS_PATH + "/levels/" + levelName + ".tmx");
 
 	status.setString("Creating pathsearch grid..");
 	Pathsearch::rasterizeGrid(lvl.getWalls(), sf::Vector2f(manager->getAssets().getTexture("zombie_idle").getSize()));
 
 	playerView.setCenter(renderer.getPlayerCenter(game.players[playerID].pos));
-	loaded = true;
 
-	renderer.setLevel(lvl.getTMXMap());
+	renderer.setLevel(lvl.getTMXMap());	
+	renderer.setDoors(lvl.getDoors());
 	renderer.debug.walls = &lvl.getWalls();
+
+	loaded = true;
 }
 
 
@@ -311,7 +351,7 @@ void PlayState::processPacket(sf::Packet & packet) {
 		packet >> id;
 		playerID = id;
 
-		//manager->getAssets().playSound("lol");
+		renderer.setPlayer(game.players[playerID]);
 
 		_LOG_.log("Client", "Set own player ID to " + std::to_string(playerID));
 		return;
@@ -423,6 +463,11 @@ void PlayState::processPacket(sf::Packet & packet) {
 		chat.addMessage(sf::Color(255, 193, 7), "+"+std::to_string(amount)+" Gold");
 
 		game.players[playerID].gold += amount;
+		return;
+	}
+
+	if (netmsg == NetMessage::SV_PONG) {
+		ping = pingTime.getElapsedTime().asMilliseconds();
 		return;
 	}
 }

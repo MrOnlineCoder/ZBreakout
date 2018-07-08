@@ -122,9 +122,7 @@ void GameServer::loop() {
 						for (int i = 0; i < game.players.size(); i++) {
 							udpServer.send(GameProtocol::addPlayerPacket(game.players[i].getNickname()), ip, Constants::CLIENT_PORT);
 						}
-						
-						//identify new player
-						udpServer.send(GameProtocol::identifyPlayerPacket(connected), ip, Constants::CLIENT_PORT);
+					
 
 						//load level
 						sf::Packet packet;
@@ -134,8 +132,12 @@ void GameServer::loop() {
 						//now add new player
 						broadcast(GameProtocol::addPlayerPacket(nick));
 
+						//identify new player
+						udpServer.send(GameProtocol::identifyPlayerPacket(connected), ip, Constants::CLIENT_PORT);
+
 						game.addPlayer(nick);
 						game.players[game.players.size() - 1].pos = game.level.getStartPosition();
+						game.players[game.players.size() - 1].dirty = true;
 
 						connected++;
 					}
@@ -220,6 +222,12 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 
 		shoot(sender);
 		return;
+	}
+
+	if (netmsg == NetMessage::CL_PING) {
+		sf::Packet packet;
+		packet << NetMessage::SV_PONG;
+		udpServer.send(packet, clients[sender], Constants::CLIENT_PORT);
 	}
 
 	//DEBUG MESSAGES

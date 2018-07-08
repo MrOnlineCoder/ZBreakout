@@ -188,5 +188,8 @@
     <ClInclude Include="GUI\RoundedShape.hpp">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Game\Door.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

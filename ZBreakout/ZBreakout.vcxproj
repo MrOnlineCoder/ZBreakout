@@ -80,7 +80,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>E:\DEVELOPMENT\C++\SOURCES\tmxlite-master\tmxlite-master\tmxlite\bin\DebugStatic;E:\DEVELOPMENT\C++\LIBRARIES\SFML-2.4.2-windows-vc14-32-bit\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;sfml-network-d.lib;libtmxlite-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-system-d.lib;sfml-window-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;sfml-network-d.lib;libtmxlite-s-d.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -158,6 +158,7 @@
     <ClInclude Include="GameState\StateManager.h" />
     <ClInclude Include="Game\Chat.h" />
     <ClInclude Include="Game\Constants.h" />
+    <ClInclude Include="Game\Door.h" />
     <ClInclude Include="Game\Effect.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Game\GameMath.h" />

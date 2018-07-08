@@ -130,21 +130,26 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 	int damage = 0;
 
 	std::vector<Bullet>::iterator bi = bullets.begin();
+	bool zdead = false;
 	while (bi != bullets.end()) {
 
 		Bullet& b = *bi;
+
 		if (zombieAABB.contains(b.pos)) {
 			damage += b.damage;
-			bi = bullets.erase(bi);
 
-			//reward player who shot this zombie
-			GameEvent evt;
-			evt.type = GameEventType::AddGold;
-			evt.goldGiven = getZombieReward(z, players[b.shooter]);
-			evt.player = b.shooter;
-			eventQueue.push(evt);
-		}
-		else {
+			if (!zdead && z.hp - b.damage <= 0) {
+				//reward player who final shot this zombie
+				GameEvent evt;
+				evt.type = GameEventType::AddGold;
+				evt.goldGiven = getZombieReward(z, players[b.shooter]);
+				evt.player = b.shooter;
+				eventQueue.push(evt);
+				zdead = true;
+			}
+
+			bi = bullets.erase(bi);
+		} else {
 			++bi;
 		}
 	}
