@@ -35,6 +35,8 @@ namespace Constants {
 	const static float PLAYER_SPEED = 20.0f;
 
 	const static int LEVEL_SIZE = 4096;
+
+	const static int ACTION_DISTANCE = 120;
 };
 
 #endif

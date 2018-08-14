@@ -16,6 +16,8 @@ Proprietary and confidential
 #include <map>
 #include <vector>
 
+#include "Door.h"
+
 const int PATH_GRID_SIZE = 256;
 const int PATH_GRID_TILE_SIZE = 16;
 
@@ -42,6 +44,7 @@ namespace Pathsearch {
 	sf::Vector2i searchNextNode(PathData& path);
 	sf::Vector2f mapNode(sf::Vector2i node);
 	void rasterizeGrid(std::vector<sf::FloatRect>& walls, sf::Vector2f enemySize);
+	void openDoorSolids(Door door);
 }
 
 #endif

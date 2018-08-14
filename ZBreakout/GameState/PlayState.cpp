@@ -180,6 +180,13 @@ void PlayState::input(sf::Event ev) {
 			return;
 		}
 
+		if (ev.key.code == sf::Keyboard::G) {
+			sf::Packet p;
+			p << NetMessage::CL_DOACTION;
+			socket.send(p, serverIP, Constants::SERVER_PORT);
+			return;
+		}
+
 
 		//Player movement
 		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::W)
@@ -302,6 +309,8 @@ void PlayState::loadThreadFunc() {
 			sf::Packet packet;
 			packet << NetMessage::CL_HANDSHAKE << "MrOnlineCoder" << Constants::VERSION;
 			socket.send(packet, serverIP, Constants::SERVER_PORT);
+		} else {
+			status.setString("Error: failed to bind UDP socket, error code: "+std::to_string(static_cast<int>(connectStatus)));
 		}
 
 		serverUp = true;
@@ -460,7 +469,10 @@ void PlayState::processPacket(sf::Packet & packet) {
 		int amount;
 		packet >> amount;
 
-		chat.addMessage(sf::Color(255, 193, 7), "+"+std::to_string(amount)+" Gold");
+		std::string sign = amount > 0 ? "+" : "";
+		sf::Color tcolor = amount > 0 ? sf::Color(255, 193, 7) : sf::Color::Red;
+
+		chat.addMessage(tcolor, sign+std::to_string(amount)+" Gold");
 
 		game.players[playerID].gold += amount;
 		return;
@@ -469,6 +481,35 @@ void PlayState::processPacket(sf::Packet & packet) {
 	if (netmsg == NetMessage::SV_PONG) {
 		ping = pingTime.getElapsedTime().asMilliseconds();
 		return;
+	}
+
+	if (netmsg == NetMessage::SV_CHATMSG) {
+		sf::Color color;
+		std::string msg;
+
+		packet >> msg >> color;
+		chat.addMessage(color, msg);
+
+		manager->getAssets().playSound("chat");
+
+		return;
+	}
+
+	if (netmsg == NetMessage::SV_OPENDOOR) {
+		int doorID;
+		int pl;
+
+		packet >> doorID >> pl;
+
+		sf::Color color = sf::Color::Green;
+
+		Door& door = lvl.getDoors()[doorID];
+
+		std::string msg = door.name + " has been opened by " + game.players[pl].getNickname() + "!";
+
+		door.open = true;
+
+		chat.addMessage(color, msg);
 	}
 }
 

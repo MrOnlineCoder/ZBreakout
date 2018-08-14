@@ -155,3 +155,13 @@ sf::Packet& operator <<(sf::Packet& packet, Zombie& arg) {
 	packet << arg.pos << arg.hp;
 	return packet;
 }
+
+sf::Packet& operator >>(sf::Packet& packet, sf::Color& arg) {
+	packet >> arg.r >> arg.g >> arg.b;
+	return packet;
+}
+
+sf::Packet& operator <<(sf::Packet& packet, sf::Color& arg) {
+	packet << arg.r << arg.g << arg.b;
+	return packet;
+}

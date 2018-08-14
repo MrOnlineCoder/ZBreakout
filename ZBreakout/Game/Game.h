@@ -25,16 +25,27 @@ Proprietary and confidential
 #include "Zombie.h"
 
 enum class GameEventType {
-	AddGold
+	AddGold,
+	SendError,
+	OpenDoor
 };
 
 struct GameEvent {
 	GameEventType type;
-	union {
-		int goldGiven;
-	};
+
+	int goldGiven;
+	std::string error;
+
+	int door;
+
 	PlayerID player;
 };
+
+namespace EventFactory {
+	GameEvent errorEvent(PlayerID pl, std::string err);
+	GameEvent giveGoldEvent(PlayerID pl, int gold);
+	GameEvent openDoorEvent(PlayerID pl, int doorID);
+}
 
 /*
 	Game class
@@ -61,6 +72,8 @@ public:
 	void spawnZombie();
 
 	void updatePlayerAttackers(PlayerID id);
+
+	void checkPlayerAction(PlayerID id);
 
 	//also used by client
 	void moveBullets();
@@ -95,6 +108,8 @@ private:
 	PlayerID findNearestPlayerTo(sf::Vector2f pos);
 
 	int getZombieReward(Zombie& z, Player& pl);
+
+	void modifyPlayerGold(PlayerID id, int delta);
 
 	sf::Clock spawnClock;
 	sf::Clock gameClock;

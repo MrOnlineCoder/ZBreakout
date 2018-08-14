@@ -59,8 +59,10 @@ sf::Vector2f Pathsearch::mapNode(sf::Vector2i node) {
 void Pathsearch::rasterizeGrid(std::vector<sf::FloatRect>& walls, sf::Vector2f enemySize) {
 	_LOG_.log("Pathsearch", "Rasterizing level containing "+std::to_string(walls.size())+" walls.");
 
-	int padx = enemySize.x / PATH_GRID_TILE_SIZE;
-	int pady = enemySize.y / PATH_GRID_TILE_SIZE;
+	closed.clear();
+
+	int padx = enemySize.x / PATH_GRID_TILE_SIZE * 0;
+	int pady = enemySize.y / PATH_GRID_TILE_SIZE * 0;
 
 	for (int i = 0; i < walls.size(); i++) {
 		sf::FloatRect& rect = walls.at(i);
@@ -88,4 +90,23 @@ void Pathsearch::rasterizeGrid(std::vector<sf::FloatRect>& walls, sf::Vector2f e
 	directions.push_back(sf::Vector2i(1, 1)); //bottom-right
 
 	_LOG_.log("Pathsearch","Razterization complete, marked as closed "+std::to_string(closed.size())+" cells.");
+}
+
+void Pathsearch::openDoorSolids(Door door) {
+	int cells = 0;
+
+	int sx = (int) door.bounds.left / PATH_GRID_TILE_SIZE;
+	int sy = (int) door.bounds.top / PATH_GRID_TILE_SIZE;
+	int sw = (int) door.bounds.width / PATH_GRID_TILE_SIZE;
+	int sh = (int) door.bounds.height / PATH_GRID_TILE_SIZE;
+
+	for (int y = 0; y < sh; y++) {
+		for (int x = 0; x < sw; x++) {
+			sf::Vector2i vec = sf::Vector2i(sx + x, sy + y);
+			closed[vec] = false;
+			cells++;
+		}
+	}
+
+	_LOG_.log("Pathsearch", "Door solids removed - " + std::to_string(cells) + " cells.");
 }

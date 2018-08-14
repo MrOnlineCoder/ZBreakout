@@ -114,6 +114,7 @@ void Level::parseObject(const tmx::Object & obj) {
 		door.bounds = rect;
 		door.name = obj.getName();
 		door.price = obj.getProperties()[0].getIntValue();
+		door.open = false;
 		doors.push_back(door);
 
 		_LOG_.log("Level", "Found object Door: " + std::to_string(door.bounds.left) + ", " + std::to_string(door.bounds.top) + ", name= "+obj.getName());

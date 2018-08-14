@@ -49,6 +49,8 @@ void AssetManager::loadAll() {
 	loadSound("zombie_roar1", "sounds/zombie_roar1.ogg");
 	loadSound("zombie_roar2", "sounds/zombie_roar2.ogg");
 
+	loadSound("chat", "sounds/chat.ogg");
+
 	loadSound("weapon_reload", "sounds/reload.ogg");
 }
 

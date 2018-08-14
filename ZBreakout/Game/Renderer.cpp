@@ -156,6 +156,8 @@ void Renderer::drawDoors() {
 	for (auto i = 0; i < doors->size(); i++) {
 		Door& door = doors->at(i);
 
+		doorTxt.setFillColor(door.open ? sf::Color::Green : sf::Color::White);
+
 		doorTxt.setString(door.name);
 		doorTxt.setPosition(door.bounds.left + door.bounds.width/2 - doorTxt.getGlobalBounds().width/2, 
 			door.bounds.top - doorTxt.getGlobalBounds().height - 15);
@@ -168,9 +170,11 @@ void Renderer::drawPossibleActions() {
 	for (auto i = 0; i < doors->size(); i++) {
 		Door& door = doors->at(i);
 
-		float dist = GameMath::distance(player->pos, sf::Vector2f(door.bounds.left + door.bounds.width / 2, door.bounds.top + door.bounds.height / 2));
+		if (door.open) continue;
 
-		if (dist < 100) {
+		float dist = GameMath::distanceSquared(player->pos, sf::Vector2f(door.bounds.left + door.bounds.width / 2, door.bounds.top + door.bounds.height / 2));
+
+		if (dist < Constants::ACTION_DISTANCE * Constants::ACTION_DISTANCE) {
 			setActionText("G", "Open door " + door.name + " (" + std::to_string(door.price) + " gold)");
 			drawActionText();
 		}

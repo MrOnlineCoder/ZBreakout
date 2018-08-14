@@ -78,6 +78,11 @@ enum class NetMessage {
 
 	SV_GOLD,
 
+	CL_DOACTION,
+	SV_CHATMSG,
+
+	SV_OPENDOOR,
+
 	CL_PING,
 	SV_PONG,
 
@@ -130,5 +135,8 @@ sf::Packet& operator <<(sf::Packet& packet, ZombieType arg);
 
 sf::Packet& operator >>(sf::Packet& packet, Zombie& arg);
 sf::Packet& operator <<(sf::Packet& packet, Zombie& arg);
+
+sf::Packet& operator >>(sf::Packet& packet, sf::Color& arg);
+sf::Packet& operator <<(sf::Packet& packet, sf::Color& arg);
 
 #endif

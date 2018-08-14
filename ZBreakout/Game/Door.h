@@ -21,6 +21,7 @@ struct Door {
 	int price;
 
 	int index;
+	bool open;
 };
 
 #endif

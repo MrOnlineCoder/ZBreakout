@@ -13,6 +13,31 @@ Proprietary and confidential
 #include "Random.h"
 #include "GameMath.h"
 
+GameEvent EventFactory::errorEvent(PlayerID pl, std::string err) {
+	GameEvent evt;
+	evt.player = pl;
+	evt.error = err;
+	evt.type = GameEventType::SendError;
+	return evt;
+}
+
+GameEvent EventFactory::giveGoldEvent(PlayerID pl, int gold) {
+	GameEvent evt;
+	evt.player = pl;
+	evt.goldGiven = gold;
+	evt.type = GameEventType::AddGold;
+	return evt;
+}
+
+GameEvent EventFactory::openDoorEvent(PlayerID pl, int doorID) {
+	GameEvent evt;
+	evt.player = pl;
+	evt.door = doorID;
+	evt.type = GameEventType::OpenDoor;
+	return evt;
+}
+
+
 Game::Game() {
 	nospawn = false;
 
@@ -140,11 +165,8 @@ int Game::findBulletDamageToZombie(Zombie& z) {
 
 			if (!zdead && z.hp - b.damage <= 0) {
 				//reward player who final shot this zombie
-				GameEvent evt;
-				evt.type = GameEventType::AddGold;
-				evt.goldGiven = getZombieReward(z, players[b.shooter]);
-				evt.player = b.shooter;
-				eventQueue.push(evt);
+				modifyPlayerGold(b.shooter, getZombieReward(z, players[b.shooter]));
+
 				zdead = true;
 			}
 
@@ -211,6 +233,12 @@ int Game::getZombieReward(Zombie & z, Player & pl) {
 	return reward;
 }
 
+void Game::modifyPlayerGold(PlayerID id, int delta) {
+	eventQueue.push(EventFactory::giveGoldEvent(id, delta));
+
+	players[id].gold += delta;
+}
+
 void Game::updatePlayerAttackers(PlayerID id) {
 	for (int i = 0; i < zombies.size(); i++) {
 		Zombie& z = zombies[i];
@@ -218,6 +246,36 @@ void Game::updatePlayerAttackers(PlayerID id) {
 		if (z.target == id) {
 			Pathsearch::initPath(&z.path, z.pos, players[z.target].pos);
 			z.nextStep = z.pos;
+		}
+	}
+}
+
+void Game::checkPlayerAction(PlayerID id) {
+	Player& pl = players[id];
+
+	for (auto i = 0; i < level.getDoors().size(); i++) {
+		Door& door = level.getDoors()[i];
+
+		if (door.open) continue;
+
+		float dist = GameMath::distanceSquared(pl.pos, sf::Vector2f(door.bounds.left+door.bounds.width/2, door.bounds.top));
+		
+		if (dist < Constants::ACTION_DISTANCE *  Constants::ACTION_DISTANCE) {
+			if (pl.gold < door.price) {
+				eventQueue.push(EventFactory::errorEvent(id, "Not enough gold."));
+				return;
+			} 
+
+			level.getWalls().erase(level.getWalls().begin() + door.index);
+
+			modifyPlayerGold(id, -door.price);
+
+			Pathsearch::openDoorSolids(door);
+
+			eventQueue.push(EventFactory::openDoorEvent(id, i));
+
+			door.open = true;
+			return;
 		}
 	}
 }

@@ -228,6 +228,12 @@ void GameServer::processPacket(int sender, sf::Packet packet) {
 		sf::Packet packet;
 		packet << NetMessage::SV_PONG;
 		udpServer.send(packet, clients[sender], Constants::CLIENT_PORT);
+		return;
+	}
+
+	if (netmsg == NetMessage::CL_DOACTION) {
+		game.checkPlayerAction(sender);
+		return;
 	}
 
 	//DEBUG MESSAGES
@@ -292,14 +298,33 @@ void GameServer::sendGameDelta() {
 
 	while (!game.eventQueue.empty()) {
 		GameEvent evt = game.eventQueue.front();
+		game.eventQueue.pop();
 
 		if (evt.type == GameEventType::AddGold) {
 			sf::Packet packet;
 			packet << NetMessage::SV_GOLD << evt.goldGiven;
 			udpServer.send(packet, clients[evt.player], Constants::CLIENT_PORT);
+			return;
 		}
 
-		game.eventQueue.pop();
+		if (evt.type == GameEventType::SendError) {
+			sf::Packet packet;
+
+			sf::Color errColor = sf::Color::Red;
+
+			packet << NetMessage::SV_CHATMSG << evt.error << errColor;
+			udpServer.send(packet, clients[evt.player], Constants::CLIENT_PORT);
+			return;
+		}
+
+		if (evt.type == GameEventType::OpenDoor) {
+			sf::Packet packet;
+
+			packet << NetMessage::SV_OPENDOOR << evt.door << evt.player;
+			
+			broadcast(packet);
+			return;
+		}
 	}
 }
 
